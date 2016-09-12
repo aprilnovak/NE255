@@ -1,0 +1,93 @@
+\documentclass[11pt]{article}
+\usepackage[letterpaper]{geometry}
+\geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+\usepackage{setspace}
+\usepackage{ragged2e}
+\usepackage{color}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage[font=small,labelfont=bf,labelsep=period]{caption}
+\usepackage[english]{babel}
+\usepackage{indentfirst}
+\usepackage{array}
+\usepackage{makecell}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{arydshln}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xfrac}
+\usepackage{etoolbox}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{dcolumn}
+\usepackage{hyperref}
+\usepackage{courier}
+\usepackage{url}
+\usepackage{esvect}
+\usepackage{commath}
+\usepackage{verbatim} % for block comments
+\usepackage{enumitem}
+\usepackage{hyperref} % for clickable table of contents
+\usepackage{braket}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{gensymb}
+\usepackage{longtable}
+
+% for circled numbers
+\usepackage{tikz}
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw,inner sep=2pt] (char) {#1};}}
+
+
+\titleclass{\subsubsubsection}{straight}[\subsection]
+
+% define new command for triple sub sections
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+\renewcommand\theparagraph{\thesubsubsubsection.\arabic{paragraph}} % optional; useful if paragraphs are to be numbered
+
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
+  {3.25ex \@plus1ex \@minus .2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\def\toclevel@subsubsubsection{4}
+\def\toclevel@paragraph{5}
+\def\toclevel@paragraph{6}
+\def\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+\def\l@paragraph{\@dottedtocline{5}{10em}{5em}}
+\def\l@subparagraph{\@dottedtocline{6}{14em}{6em}}
+\makeatother
+
+\newcommand{\volume}{\mathop{\ooalign{\hfil$V$\hfil\cr\kern0.08em--\hfil\cr}}\nolimits}
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+\begin{document}
+
+\textbf{NE 255 HW 1}\hfill April Novak, 9/11/16\newline
+
+The National Nuclear Security Administration (NNSA) is tasked with ensuring the secure safeguarding and disposal of dangerous nuclear material and weapons of mass destruction. The NNSA is also heavily involved in the detection of illicit nuclear materials with the goal of securing peaceful, rather than terrorist, uses of nuclear power. The NNSA mission is intimately related to the ability to accurately model neutron transport. There are several branches of the NNSA that are particularly invested in the field of neutral particle transport.
+
+The Nuclear Smuggling Detection and Deterrence program (NSDD) is involved in improving our abilities to detect the illicit movement of nuclear materials that may be involved in forming a nuclear weapon. To accurately detect nuclear radiation, not only are physical detectors, such as scintillators   and semiconductors, necessary to detect radiation, but a deep understanding of how radiation travels through matter is required to understand optimal placement of such detectors. The detection of nuclear materials is related to shielding analysis, where detecting nuclear radiation is greatly complicated by the fact that radiation attenuates quickly in common materials. Monte Carlo simulations with many particles can be used to simulate the detection of nuclear material. The very high cost associated with this method motivates the development of deterministic methods, which may be able to run with much less computing resources. However, the development of deterministic methods is considerably more complex.
+
+A second group in the NNSA is the Office of Conversion, which works to dismantle research reactors or else convert their high-enriched fuel to lower enrichment with the goal of reducing the global quantity of weapons-grade materials. Many of these reactors were specifically designed to use high-enriched fuels, and conversion to a lower enrichment, while still meeting criticality requirements, is not necessarily an easy task. Computational models of such a transition are necessary before conversion, especially since no experiment can be performed (because the research reactor \textit{is} the experiment). Criticality calculations are needed to verify that a change in materials can sustain a critical core. New developments in criticality calculations such as alpha-eigenvalue methods are usually (?) restricted to the weapons design realm, but may be extended to the conversion design of these reactors. If the realm within which the converted reactors will operate is relatively-well understood, then simple k-eigenvalue methods can be used. 
+
+New developments in neutral particle transport are directly applicable to reactor design due to the high importance of understanding the neutron flux. Shielding calculations are a second major application that are pursued not only in reactor designs, but within organizations such as the NNSA that wish to detect illicit materials. Fortunately, both fields can be advanced by studying neutral particle transport, since both neutrons and photons, a more common decay product than neutrons, can be simulated with the linear Boltzmann transport equation, the topic of this class.
+
+\end{document}
