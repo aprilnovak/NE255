@@ -104,5 +104,33 @@ As can be seen, the error is a linear function of \(h\) and \(N\) when plotted o
 \item For most general-purpose calculations, the cross sections are taken as independent of time because they change on such long length scales that a numerical simulation would be more effective in solving static, pseudo steady-state problems. This allows burnup calculations to be performed as a series of steps without continuous simulation, which reduces the computational cost significantly.
 \end{enumerate}
 
+\circled{8}\newline
+
+The lowest energy isolated resonance is important in selecting the group structure to be used for multi-group calculations, since it would be best to create an energy group that contains the entire resonance, rather than splitting the resonance between multiple energy groups. For the purpose of determining the lowest isolated resonance, the \((n,\textrm{total})\) cross section is used, and a resonance is interpreted as any ``bump'' or peak in the cross section plot above the \(1/v\) dependence at low energies. For example, the cross section plot for U-235 is shown in Fig. \ref{fig:U235}. As can be seen, the lowest energy resonance occurs at approximately 2.7E-1 eV. Though not shown, similar plots were obtained for the other nuclides to fill out Table \ref{table:2}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=10cm]{U235.pdf}
+  \caption{(n,total) cross section for U-235.}
+  \label{fig:U235}
+\end{figure}
+
+\begin{table}[H]
+\caption{Lowest isolated resonances of nuclides of interest from http://www.nndc.bnl.gov/sigma/.}
+\centering
+\begin{tabular}{l c}
+\hline\hline
+Nuclide & Lowest isolated resonance (eV)\\ [0.5ex]
+\hline
+U-235 & \(0.27\)\\
+U-238 & \(6.40\)\\
+Pu-239 & \(0.27\)\\
+Pu-240 & \(1.00\)\\
+Pu-241 & \(0.24\)\\
+Pu-242 & \(2.60\)\\
+\hline
+\end{tabular}
+\label{table:2}
+\end{table}
 
 \end{document}
