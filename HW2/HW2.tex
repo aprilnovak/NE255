@@ -93,6 +93,16 @@ As can be seen, the error is a linear function of \(h\) and \(N\) when plotted o
   \caption{Relative error as a function of mesh spacing \(h\) and number of elements \(N\). The slopes \(m\) of each line are given in the legend.}
 \end{figure}
 
+\circled{5}\newline
+
+\begin{enumerate}
+\item We assume that neutron-neutron interactions are negligible. This assumption is perhaps the most important to the actual solution and numerical implementation of the transport equation, since otherwise the transport equation would be nonlinear, which brings significantly more difficulty in terms of analytical and numerical solution. Neutron-neutron interactions are \textit{very} scarce, and hence this approximation is also a very good approximation.
+\item We assume that neutrons travel in straight lines between collisions. Because neutrons are neutral, the only body force acting on them that could cause them to move in non-straight lines is gravity. Because the mass of a neutron is very small, however, gravitational effects on the path of a neutron are negligible, and hence can be neglected. This approximation greatly simplifies the streaming term.
+\item We neglect quantum and relativistic effects. Spin, parity, etc. are all neglected. Experience has shown this to be a good approximation, and greatly simplifies the transport equation by avoiding the need to include additional independent variables such as parity.
+\item We assume neutrons are point particles. Then, the transport equation is an equation in seven variables \(x, y, z, t, E, \theta, \phi\), and we don't need to include an additional variable to represent how a neutron has rotated about its center of mass. Because neutrons are so small, this assumption does not introduce significant error.
+\item We assume that material properties are isotropic, such that cross sections are not functions of \(\hat{\Omega}\). Most materials are isotropic due to the random orientation of grains, and hence this is a fairly good approximation.
+\item For most general-purpose calculations, the cross sections are taken as independent of time because they change on such long length scales that a numerical simulation would be more effective in solving static, pseudo steady-state problems. This allows burnup calculations to be performed as a series of steps without continuous simulation, which reduces the computational cost significantly.
+\end{enumerate}
 
 
 \end{document}
