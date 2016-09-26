@@ -77,11 +77,69 @@
 
 \newcommand{\volume}{\mathop{\ooalign{\hfil$V$\hfil\cr\kern0.08em--\hfil\cr}}\nolimits}
 
-\numberwithin{equation}{section} % for equation numbering
-
 \setcounter{secnumdepth}{4}
 \setcounter{tocdepth}{4}
 \begin{document}
+
+\textbf{NE 255: HW2} 1, 2, 6\hfill April Novak\newline
+
+\textit{NOTE: The problems are out of order in order to save paper.}\newline
+
+\circled{3}\newline
+
+A norm is defined as:
+
+\begin{equation}
+\|u\|_i=\left(\sum_{j}^{}(u_j)^i\right)^{1/i}
+\end{equation}
+
+The relative error is defined as:
+
+\begin{equation}
+\frac{\|x_n-x_{n-1}\|_i}{\|x_n\|_i}=\frac{\left(\sum_{j}^{}(x_{n,j}-x_{(n-1),j})^i\right)^{1/i}}{\left(\sum_{j}^{}(x_{n,j})^i\right)^{1/i}}
+\end{equation}
+
+And the absolute error is defined as:
+
+\begin{equation}
+\|x_n-x_{n-1}\|_i=\left(\sum_{j}^{}(x_{n,j}-x_{(n-1),j})^i\right)^{1/i}
+\end{equation}
+
+These definitions are straightforward for all norms other than the infinity norm. For the infinity norm, by looking at the structure of the norm, it can be seen that raising a component of \(x_n\) to the infinite power will ``select'' the maximum value in \(x_n\), since all other values will go to zero relative to the maximum value. Hence, the value of the infinity norm is simply the absolute value of the maximum value of the vector. Table \ref{table:3} shows the information requested for the first part. 
+
+I think the wording in this question is inconsistent - I would think that the most restrictive error estimate would cause the code to converge \textit{last}, i.e. with more iterations required because the convergence tolerance is more restrictive. However, assuming that Rachel meant that the most ``restrictive'' error estimate does refer to which causes the code to converge first, then that norm is the infinity norm, since it gives the lowest error estimates. This occurs because the infinity norm essentially only compares one value between the two solution vectors - if those two values happen to be close, then the infinity norm would suggest that the solution has converged, regardless of the values of all other entries in the solution vector. Hence, for accurate error estimates, lower \(L\) norms are preferred, since they capture more of the entire behavior of the solution.
+
+\begin{table}[H]
+\caption{Absolute and relative error for various norms for \(x_{n-1}=(0.45, 0.95, 0.2, -0.05, 0.6)^T\).}
+\centering
+\begin{tabular}{c c c}
+\hline\hline
+Norm & Absolute error & Relative error\\ [0.5ex]
+\hline
+1 & 0.350 & 0.152\\
+2 & 0.166 & 0.140\\
+\(\infty\) & 0.100 & 0.111\\
+\hline
+\end{tabular}
+\label{table:3}
+\end{table}
+
+Repeating the analysis for another past solution vector gives the information in Table \ref{table:4}. Of course, the choice of norm is not always obvious, since the closeness of two solution vectors is not always going to be measured as closer when using the infinity norm versus another norm. Hence, from this data, it would appear that using the 1-norm would be more restrictive (converge faster (incorrect definition from Rachel?)) when using the relative error, but the infinity norm would converge faster (again, incorrect definition?) when using the absolute norm. When performing convergence investigations of an algorithm, it is best to use multiple measures of error to assess whether a solution has converged.
+
+\begin{table}[H]
+\caption{Absolute and relative error for various norms for \(x_{n-1}=(0.49, 0.92, 0.40, -0.09, 0.51)^T\).}
+\centering
+\begin{tabular}{c c c}
+\hline\hline
+Norm & Absolute error & Relative error\\ [0.5ex]
+\hline
+1 & 0.150 & 0.065\\
+2 & 0.103 & 0.087\\
+\(\infty\) & 0.100 & 0.111\\
+\hline
+\end{tabular}
+\label{table:4}
+\end{table}
 
 \circled{4}\newline
 
