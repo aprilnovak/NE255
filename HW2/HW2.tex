@@ -81,9 +81,29 @@
 \setcounter{tocdepth}{4}
 \begin{document}
 
-\textbf{NE 255: HW2} 1, 2, 6\hfill April Novak\newline
+\textbf{NE 255: HW2} 1\hfill April Novak\newline
 
-\textit{NOTE: The problems are out of order in order to save paper.}\newline
+\circled{1}\newline
+
+The macroscopic cross section is determined as a summation over the constituents of a mixture:
+
+\begin{equation}
+\Sigma_s=\sum_{i=1}^{n}\sigma_{s,i}N_i
+\end{equation}
+
+where \(N\) is the number density and \(\sigma_{s,i}\) the microscopic scattering cross section of component \(i\).
+
+\begin{equation}
+\Sigma_s=\sigma_{s, U-235}N_{U-235}+\sigma_{s,U-238}N_{U-238}+\sigma_{s,O-16}N_{O-16}
+\end{equation}
+
+Introducing the factor \(\gamma=N_{U-235}/N_{U-238}\):
+
+\begin{equation}
+\Sigma_s=(\sigma_{s, U-235}\gamma+ \sigma_{s,U-238})N_{U-238}+\sigma_{s,O-16}N_{O-16}
+\end{equation}
+
+This factor does not represent enrichment, since enrichment is defined as the ratio of U-235 to the \textit{total} uranium. 
 
 \circled{3}\newline
 
