@@ -81,7 +81,7 @@
 \setcounter{tocdepth}{4}
 \begin{document}
 
-\textbf{NE 255: HW2} 1\hfill April Novak\newline
+\textbf{NE 255: HW2}\hfill April Novak\newline
 
 \circled{1}\newline
 
@@ -94,16 +94,59 @@ The macroscopic cross section is determined as a summation over the constituents
 where \(N\) is the number density and \(\sigma_{s,i}\) the microscopic scattering cross section of component \(i\).
 
 \begin{equation}
-\Sigma_s=\sigma_{s, U-235}N_{U-235}+\sigma_{s,U-238}N_{U-238}+\sigma_{s,O-16}N_{O-16}
+\Sigma_s=\sigma_{s, U}N_{U}+\sigma_{s,O}N_{O_2}
 \end{equation}
 
-Introducing the factor \(\gamma=N_{U-235}/N_{U-238}\):
+The number density of uranium is:
 
 \begin{equation}
-\Sigma_s=(\sigma_{s, U-235}\gamma+ \sigma_{s,U-238})N_{U-238}+\sigma_{s,O-16}N_{O-16}
+N_U=N_{U-235}+N_{U-238}\rightarrow(\gamma+1)N_{U-238}
 \end{equation}
 
-This factor does not represent enrichment, since enrichment is defined as the ratio of U-235 to the \textit{total} uranium. 
+The total number density of the fuel is:
+
+\begin{equation}
+N_{UO_2}=\frac{\rho_{UO_2}N_A}{M_{UO_2}}=N_U+N_{O_2}
+\end{equation}
+
+where
+
+\begin{equation}
+\begin{aligned}
+M_{UO_2}=M_U+2M_O\\
+\end{aligned}
+\end{equation}
+
+Because there are two oxygen atoms for every uranium atom:
+
+\begin{equation}
+N_{O_2}=2N_U
+\end{equation}
+
+Assuming that the density of U-235 and U-238 are identical:
+
+\begin{equation}
+M_U=\gamma M_{U-235}+(1-\gamma)M_{U-238}
+\end{equation}
+
+Combining the above equations:
+
+\begin{equation}
+\begin{aligned}
+\Sigma_s=\sigma_{s, U}N_{U}+\sigma_{s,O}2N_U\rightarrow N_U(\sigma_{s, U}+2\sigma_{s,O})\\
+\Sigma_s=\left(\frac{\rho_{UO_2}N_A}{3M_{UO_2}}\right)(\sigma_{s, U}+2\sigma_{s,O})\\
+\Sigma_s=\left(\frac{\rho_{UO_2}N_A}{3\left((\gamma M_{U-235}+(1-\gamma)M_{U-238})+2M_O\right)}\right)(\sigma_{s, U}+2\sigma_{s,O})\\
+\end{aligned}
+\end{equation}
+
+Inserting the values given in the problem:
+
+\begin{equation}
+\begin{aligned}
+\Sigma_s=\left(\frac{10(6.022e23)}{3\left(0.05\cdot235+(1-0.05)238+2(16)\right)}\right)((8.9e-22)+2(3.75e-22))\frac{g\cdot cm^2\cdot mol}{g\cdot mol\cdot cm^3}\\
+\Sigma_s=12.19 cm^{-1}\\
+\end{aligned}
+\end{equation}
 
 \circled{3}\newline
 
