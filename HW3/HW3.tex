@@ -81,8 +81,40 @@
 \setcounter{tocdepth}{4}
 \begin{document}
 
-\textbf{NE 255: HW3}1, 2, 3, 4, 5\hfill April Novak\newline
+\textbf{NE 255: HW3}1, 2, 4, 5\hfill April Novak\newline
 
 \circled{1}\newline
+
+\circled{2}\newline
+
+\circled{3}\newline
+
+(a) \underline{Complexity}: In terms of complexity, deterministic methods are the most difficult to derive, understand, and encode. Diffusion theory is a deterministic method, and because it consists of one equation (assuming there is no anisotropic source, and that the time rate of change of the current with respect to its magnitude is small), it is not very complex to understand or encode. Diffusive equations also have very nice numerical properties, and do not require the messy stabilization methods required for nonlinear physics such as the Navier-Stokes equations. Deterministic methods require procedures for discretizing in space, angle, energy, and time, while this is not required of Monte Carlo methods. The Monte Carlo code Serpent, for instance, is continuous in all of these variables except time, but finite differencing time stepping is only performed in the depletion subroutines (I think?). Monte Carlo methods are the least complex because they require simply tracking particle motion around repeatedly, though they can become complex once weight windows and particle tracking are introduced to improve the statistics.\newline
+
+\underline{Accuracy}: Without the restrictions of computational cost, Monte Carlo methods are the most accurate, since there is no ``approximation'' of the physics or numerical errors that are always present in deterministic methods. For instance, in deterministic methods, there is always some type of truncation error that is present due to approximating a continuous process over a discrete mesh. In general, transport solutions are more accurate than diffusive solutions provided that the transport solutions were not performed with such a poor mesh that they are ``useless.'' However, the benefit of deterministic methods is that they can potentially be more accurate than Monte Carlo solutions when constrained to a fixed run time, especially for shielding problems where a very large number of particles would need to be run in order to obtain sufficient statistics.\newline
+
+\underline{Run time}: It is difficult to rank these methods in terms of run time, since increasing the number of particles or refining the mesh can always lead to a higher run time. To obtain the same level of error, I cannot say beforehand which method, deterministic or Monte Carlo, could obtain the result faster. If someone knew then we might not be studying one of the methods entirely! Diffusion problems will most likely run much faster than Monte Carlo and other deterministic methods. Deterministic methods on average likely run faster than Monte Carlo problems, since, especially for large geometries, Monte Carlo simulations can require very many particles to obtain satisfactory statistics.\newline
+
+\underline{Applicability}: When using the diffusion equations, you are inherently assuming that 1) the angular flux is at most linearly anisotropic, 2) the time rate of change of the current is small with respect to its magnitude, and 3) there is no anisotropic source. Diffusion theory breaks down when the medium becomes poorly-scattering, i.e. near strong absorbers, near void regions or vacuum boundaries, and near material interfaces with strong changes in cross section. Due to the high level of generality of Monte Carlo methods, they are applicable under all situations that are governed by stochastic processes. Assuming that nuclear interactions are always stochastic, then Monte Carlo methods are applicable so long as the underlying nuclear data is accurate. Deterministic methods often place limitations of the degree of angular discretization, so for highly-dependent angular solutions, it may be better to use a Monte Carlo solution instead of a deterministic method with an unknown mesh requirement.\newline
+
+(b) \underline{Some strengths of deterministic methods include}:
+
+\begin{enumerate}
+\item Generally have lower run times than Monte Carlo methods
+\item Accuracy is always the same (i.e. you don't need to re-run the simulation many times to obtain an averaged result)
+\item More closely related to transport theory, so interesting academic and mathematical results can be derived to inspire new methods
+\end{enumerate} 
+
+\underline{Some weaknesses of deterministic methods include}:
+
+\begin{enumerate}
+\item More difficult to program and understand as a general user than Monte Carlo codes
+\item Mesh refinement studies have to be performed before being able to trust the results
+\item You always need to check that the range of validity of the equations fits your application before using a deterministic code
+\end{enumerate}
+
+\circled{4}\newline
+
+\circled{5}\newline
 
 \end{document}
