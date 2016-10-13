@@ -82,7 +82,7 @@
 \setcounter{tocdepth}{4}
 \begin{document}
 
-\textbf{NE 255: HW3}1, 2, 4, 5\hfill April Novak\newline
+\textbf{NE 255: HW3}2, 4\hfill April Novak\newline
 
 \circled{1} Due to the added complexity associated with higher dimensions, the \(P_N\) equations are derived here for the time-independent form of the 1-D, monoenergetic transport equation in Cartesian geometries given by the following equation, where the external and fission source are bundled together into \(S\), which is assumed isotropic:
 
@@ -253,9 +253,7 @@ where \(\psi_b=0\) because for vacuum boundaries we assume no incoming flux. The
 \int_{4\pi}^{}d\hat{\Omega}\hat{\Omega}=\int_{0}^{\pi}d\theta\int_{0}^{2\pi}d\phi\left\lbrack\sin{(\theta)}\cos{(\phi)}\hat{x}+\sin{(\theta)}\sin{(\phi)}\hat{y}+\cos{(\theta)}\hat{z}\right\rbrack
 \end{equation}
 
-\circled{3}\newline
-
-(a) \underline{Complexity}: In terms of complexity, deterministic methods are the most difficult to derive, understand, and encode. Diffusion theory is a deterministic method, and because it consists of one equation (assuming there is no anisotropic source, and that the time rate of change of the current with respect to its magnitude is small), it is not very complex to understand or encode. Diffusive equations also have very nice numerical properties, and do not require the messy stabilization methods required for nonlinear physics such as the Navier-Stokes equations. Deterministic methods require procedures for discretizing in space, angle, energy, and time, while this is not required of Monte Carlo methods. The Monte Carlo code Serpent, for instance, is continuous in all of these variables except time, but finite differencing time stepping is only performed in the depletion subroutines (I think?). Monte Carlo methods are the least complex because they require simply tracking particle motion around repeatedly, though they can become complex once weight windows and particle tracking are introduced to improve the statistics.\newline
+\circled{3} (a) \underline{Complexity}: In terms of complexity, deterministic methods are the most difficult to derive, understand, and encode. Diffusion theory is a deterministic method, and because it consists of one equation (assuming there is no anisotropic source, and that the time rate of change of the current with respect to its magnitude is small), it is not very complex to understand or encode. Diffusive equations also have very nice numerical properties, and do not require the messy stabilization methods required for nonlinear physics such as the Navier-Stokes equations. Deterministic methods require procedures for discretizing in space, angle, energy, and time, while this is not required of Monte Carlo methods. The Monte Carlo code Serpent, for instance, is continuous in all of these variables except time, but finite differencing time stepping is only performed in the depletion subroutines (I think?). Monte Carlo methods are the least complex because they require simply tracking particle motion around repeatedly, though they can become complex once weight windows and particle tracking are introduced to improve the statistics.\newline
 
 \underline{Accuracy}: Without the restrictions of computational cost, Monte Carlo methods are the most accurate, since there is no ``approximation'' of the physics or numerical errors that are always present in deterministic methods. For instance, in deterministic methods, there is always some type of truncation error that is present due to approximating a continuous process over a discrete mesh. In general, transport solutions are more accurate than diffusive solutions provided that the transport solutions were not performed with such a poor mesh that they are ``useless.'' However, the benefit of deterministic methods is that they can potentially be more accurate than Monte Carlo solutions when constrained to a fixed run time, especially for shielding problems where a very large number of particles would need to be run in order to obtain sufficient statistics.\newline
 
@@ -284,7 +282,13 @@ where \(\psi_b=0\) because for vacuum boundaries we assume no incoming flux. The
 \circled{5} Some of the major nuclear data libraries include:
 
 \begin{enumerate}
-\item ENDF (Evaluated Nuclear Data File):
+\item ENDF (Evaluated Nuclear Data File): United States
+\item JENDL (Japanese Evaluated Nuclear Data Library): Japan
+\item TENDL (TALYS-based Evaluated Nuclear Data Library): (TALYS is managed by the Netherlands). TALYS is a code that contains nuclear physics to predict cross sections. Up until 2015, this library was managed in the Netherlands, but since then management has switched to France and Switzerland.
+\item JEFF (Joint Evaluated Fission and Fusion File): collaboration between NEA Data Bank members
+\item CENDL (Chinese Evaluated Neutron Data Library): China
+\item RUSFOND: Russia
+\item BROND: Russia
 \end{enumerate}
 
 \end{document}
