@@ -3,25 +3,12 @@ clear all
 
 l = 4;
 m = 0;
-theta = 0:0.01:pi;
-mu = cos(theta);
 
-% compute Associated LP     l, m, mu
-[P_lm] = AssociatedLegendre(l, m, mu);
-
-% compute the spherical harmonics
-prefactor = sqrt((2*l + 1) * factorial(l - m));
-prefactor2 = sqrt(4 * pi * factorial(l + m));
-
-phi = linspace(0, 2*pi, length(mu));
-Y_lm = ((-1).^ m) .* (prefactor ./ prefactor2) .* P_lm .* exp(1j .* m .* phi);
-
-% try using meshgrid
 theta = meshgrid(0:0.01:pi);
 mu = cos(theta);
 phi = meshgrid(linspace(0, 2*pi, length(theta)));
 
-
+% compute Legendre polynomials
 syms x
 
 if ((l + m) == 0)
@@ -49,6 +36,4 @@ P_lm = prefactor .* prefactor2 .* eval(derivative);
 prefactor = sqrt((2*l + 1) * factorial(l - m));
 prefactor2 = sqrt(4 * pi * factorial(l + m));
 
-Z = mu.*phi;
 mesh(((-1).^ m) .* (prefactor ./ prefactor2) .* P_lm .* exp(1j .* m .* phi));
-%mesh(P_lm)
