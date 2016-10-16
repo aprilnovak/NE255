@@ -41,6 +41,13 @@
 \usepackage{soul} % for striking out text
 \usepackage[makeroom]{cancel}	% to cancel out text
 
+\usepackage{listings}
+\lstset{
+    frame=single,
+    breaklines=true,
+    postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}}
+}
+
 % for circled numbers
 \usepackage{tikz}
 \newcommand*\circled[1]{\tikz[baseline=(char.base)]{
@@ -278,8 +285,8 @@ where \(\psi_b=0\) because for vacuum boundaries we assume no incoming flux. The
 \end{enumerate}
 
 \clearpage
-\circled{4} Figures \ref{fig:real} and \ref{fig:imag} plot the real and imaginary components of \(Y_{lm}\) for \(l=0, 1, 2\) and for \(-l\leq m\leq l\).
-
+\circled{4} (a) Figures \ref{fig:real} and \ref{fig:imag} plot the real and imaginary components of \(Y_{lm}\) for \(l=0, 1, 2\) and for \(-l\leq m\leq l\).
+\begin{comment}
 \begin{figure}[H]
   \centering
   \includegraphics[width=15cm]{Real_Ylm.pdf}
@@ -294,8 +301,11 @@ where \(\psi_b=0\) because for vacuum boundaries we assume no incoming flux. The
   \caption{Imaginary component of \(Y_{lm}\).}
   \label{fig:imag}
 \end{figure}
+\end{comment}
 
 \clearpage
+(b) 
+
 \circled{5} Some of the major nuclear data libraries include:
 
 \begin{enumerate}
@@ -307,5 +317,12 @@ where \(\psi_b=0\) because for vacuum boundaries we assume no incoming flux. The
 \item RUSFOND: Russia
 \item BROND: Russia
 \end{enumerate}
+
+\section{Appendix}
+This section contains all the code used for each question. 
+
+\subsection{Question 4}
+\lstinputlisting[language=Matlab]{Q4.m}
+
 
 \end{document}
