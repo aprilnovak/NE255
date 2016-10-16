@@ -1,4 +1,4 @@
-function [P_lm] = AssociatedLegendre(l, m, mesh_size)
+function [P_lm] = AssociatedLegendre(l, m, mu)
 syms x
 
 if ((l + m) == 0)
@@ -15,8 +15,10 @@ else
 end
 
 % plotting domain for mu
-x = -1:mesh_size:1;
+x = mu;
 
 prefactor = ((-1).^m) / ((2^l) * factorial(l));
 prefactor2 = (1 - x.^2) .^ (m./2);
 P_lm = prefactor .* prefactor2 .* eval(derivative);
+
+plot(x, P_lm)
