@@ -20,5 +20,3 @@ x = mu;
 prefactor = ((-1).^m) / ((2^l) * factorial(l));
 prefactor2 = (1 - x.^2) .^ (m./2);
 P_lm = prefactor .* prefactor2 .* eval(derivative);
-
-plot(x, P_lm)
