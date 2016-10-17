@@ -1,7 +1,7 @@
 % QUESTION 2 - NE 255 hw 2
 clear all
 
-N = 8;                                          % quadrature order
+N = 4;                                          % quadrature order
 syms xe eta mu                                  % components of \Omega
 f(xe, eta, mu) = sqrt(xe^2 + eta^2 + mu^2);     % function to integrate
 
@@ -64,9 +64,45 @@ for i = 1:total_possible
     end
 end
 
-% perform the integration
-integral = 0;
-for i = 1:(N*(N+2)/8)
-    integral = integral +  wt(i) * f(valid(i,1), valid(i,2), valid(i,3));
+% determine all quadrature points in the other octants
+valid_full = zeros(N*(N+2), 3);
+i = 1;      
+j = 1;
+k = 1;
+p = 1;
+
+for row = 1:(N*(N+2))
+    valid_full(row,:) = [i * valid(p,1), j * valid(p,2), k * valid(p,3)];
+    if k == 1
+        k = -1;
+    else
+        k = 1;
+        if j == 1;
+            j = -1;
+        else
+            j = 1;
+            if i == 1
+                i = -1;
+            else
+                i = 1;
+            end
+        end
+    end
 end
 
+
+% perform the integration over all octants
+integral = 0;
+j = 1;
+for i = 1:(N*(N+2))
+    integral = integral +  wt(j) * f(valid_full(i,1), valid_full(i,2), valid_full(i,3));
+    if j == length(wt)
+        j = 1;
+    else
+        j = j + 1;
+    end
+end
+
+% multiply result by pi/2 to scale
+integral = eval(integral) * pi/2;
+disp(sprintf('S-%i quadrature gives an integral of: %.4f', N, integral));

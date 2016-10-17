@@ -254,10 +254,11 @@ where \(\psi_b=0\) because for vacuum boundaries we assume no incoming flux. The
 \end{aligned}
 \end{equation}
 
-\circled{2} The following integral will be evaluated using the \(LQ_N\) quadrature rules:
+\circled{2} (a) The following integral will be evaluated using the \(LQ_N\) quadrature rules:
 
 \begin{equation}
-\int_{4\pi}^{}d\hat{\Omega}|\hat{\Omega}|=\int_{4\pi}^{}d\hat{\Omega}\sqrt{(\xi^2+\eta^2+\mu^2)}=\sum_{i=1}^{N(N+2)}w_i\sqrt{(\xi_i^2+\eta_i^2+\mu_i^2)}
+\label{eq:Sn}
+\int_{4\pi}^{}d\hat{\Omega}|\hat{\Omega}|=\int_{4\pi}^{}d\hat{\Omega}\sqrt{(\xi^2+\eta^2+\mu^2)}=8\sum_{i=1}^{N(N+2)/8}w_i\sqrt{(\xi_i^2+\eta_i^2+\mu_i^2)}
 \end{equation}
 
 where
@@ -266,6 +267,11 @@ where
 \hat{\Omega}=\xi\hat{x}_1+\eta\hat{x}_2+\mu\hat{x}_3
 \end{equation}
 
+However, the integration in Eq. \eqref{eq:Sn} assumes that the weights are normalized such that integration over the entire unit sphere gives unity. This quadrature rule is designed such that it is normalized over a single octant. Over an octant, \(\mu\) ranges from 0 to 1 and \(\phi\)from 0 to \(\pi/2\). Hence, the end result of the integration with the quadrature rules from Lewis and Miller must be multiplied by \(2/\pi\) to attain the correct normalization. The Appendix contains the code used for this section. Using the \(S_4\) \(LQ_N\) quadrature, integration over the unit sphere gives a value of \(4\pi\), which is expected analytically. Because the quadrature points are all on the unit sphere, the integrand in Eq. \eqref{eq:Sn} can be exactly integrated with the level-symmetric quadrature.\newline
+
+(b) With \(S_6\) quadrature, a value of \(4\pi\) is again obtained. Hence, for this simple integration, again because all quadrature points already lie on the unit sphere, this integral can be exactly integrated.\newline
+
+(c) 
 
 
 
