@@ -1,9 +1,14 @@
 % QUESTION 2 - NE 255 hw 2
 clear all
 
-N = 4;                                          % quadrature order
+N = 6;                                          % quadrature order
 syms xe eta mu                                  % components of \Omega
-f(xe, eta, mu) = sqrt(xe^2 + eta^2 + mu^2);     % function to integrate
+
+% Parts A and B
+%f(xe, eta, mu) = sqrt(xe^2 + eta^2 + mu^2);    % function to integrate
+
+% Part C (uncomment to see the result)
+f(xe, eta, mu) = mu^2;
 
 switch N
     case 4
@@ -88,6 +93,10 @@ for row = 1:(N*(N+2))
             end
         end
     end
+    
+    if (mod(row, 8) == 0)
+        p = p + 1;
+    end
 end
 
 
@@ -96,9 +105,7 @@ integral = 0;
 j = 1;
 for i = 1:(N*(N+2))
     integral = integral +  wt(j) * f(valid_full(i,1), valid_full(i,2), valid_full(i,3));
-    if j == length(wt)
-        j = 1;
-    else
+    if j == length(valid)
         j = j + 1;
     end
 end
