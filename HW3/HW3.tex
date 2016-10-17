@@ -257,8 +257,18 @@ where \(\psi_b=0\) because for vacuum boundaries we assume no incoming flux. The
 \circled{2} The following integral will be evaluated using the \(LQ_N\) quadrature rules:
 
 \begin{equation}
-\int_{4\pi}^{}d\hat{\Omega}\hat{\Omega}=\int_{0}^{\pi}d\theta\int_{0}^{2\pi}d\phi\left\lbrack\sin{(\theta)}\cos{(\phi)}\hat{x}+\sin{(\theta)}\sin{(\phi)}\hat{y}+\cos{(\theta)}\hat{z}\right\rbrack
+\int_{4\pi}^{}d\hat{\Omega}|\hat{\Omega}|=\int_{4\pi}^{}d\hat{\Omega}\sqrt{(\xi^2+\eta^2+\mu^2)}=\sum_{i=1}^{N(N+2)}w_i\sqrt{(\xi_i^2+\eta_i^2+\mu_i^2)}
 \end{equation}
+
+where
+
+\begin{equation}
+\hat{\Omega}=\xi\hat{x}_1+\eta\hat{x}_2+\mu\hat{x}_3
+\end{equation}
+
+
+
+
 
 \circled{3} (a) \underline{Complexity}: In terms of complexity, deterministic methods are the most difficult to derive, understand, and encode. Diffusion theory is a deterministic method, and because it consists of one equation (assuming there is no anisotropic source, and that the time rate of change of the current with respect to its magnitude is small), it is not very complex to understand or encode. Diffusive equations also have very nice numerical properties, and do not require the messy stabilization methods required for nonlinear physics such as the Navier-Stokes equations. Deterministic methods require procedures for discretizing in space, angle, energy, and time, while this is not required of Monte Carlo methods. The Monte Carlo code Serpent, for instance, is continuous in all of these variables except time, but finite differencing time stepping is only performed in the depletion subroutines (I think?). Monte Carlo methods are the least complex because they require simply tracking particle motion around repeatedly, though they can become complex once weight windows and particle tracking are introduced to improve the statistics.\newline
 
