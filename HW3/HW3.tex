@@ -271,16 +271,19 @@ However, the integration in Eq. \eqref{eq:Sn} assumes that the weights are norma
 
 (b) With \(S_6\) quadrature, a value of \(4\pi\) is again obtained. Hence, for this simple integration, again because all quadrature points already lie on the unit sphere, this integral can be exactly integrated.\newline
 
-(c) The code developed was extended to compute the quadrature integrations of several functions for several quadrature orders. The results of these integrations is given in the table below.
+(c) The code developed was extended to compute the quadrature integrations of several functions for several quadrature orders. The results of these integrations is given in the table below. As can be seen, and by investigation of other functions, integrations of any odd function give an integral of zero, as expected since the integration is performed over a domain symmetric about the origin. The order of the quadrature makes negligible difference for these integrations (to four significant digits), but would possibly give significant differences for integrands that are not or are not well-approximated as polynomials (since quadrature rules or order \(p\) can usually integrate a polynomial of order proportional to \(p\) exactly (the exact relationship depends on the quadrature rule)).
 
 \begin{table}[H]
-\caption{Numerical integration results for various level-symmetric quadratures for several functions.}
+\caption{Numerical integration results for various level-symmetric quadratures for several functions. The values shown are truncated at four decimal points.}
 \centering
 \begin{tabular}{c c c c}
 \hline\hline
 Function & \(S_4\) integration & \(S_6\) integration & \(S_8\) integration\\ [0.5ex]
 \hline
-\(\mu\) & \\
+\(\mu\) 		& 0.0000 	& 0.0000 	& 0.0000\\
+\(\mu^2\)		& 4.1887	& 4.1887	& 4.1887\\
+\(\eta^2+2\)	& 29.321	& 29.321	& 29.321\\
+\(\cos{(\xi)}\)	& 10.574	& 10.574	& 10.574\\
 \hline
 \end{tabular}
 \label{table:3}
