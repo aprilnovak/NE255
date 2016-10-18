@@ -89,7 +89,7 @@
 \setcounter{tocdepth}{4}
 \begin{document}
 
-\textbf{NE 255: HW3}2, 4\hfill April Novak\newline
+\textbf{NE 255: HW3}4\hfill April Novak\newline
 
 \circled{1} Due to the added complexity associated with higher dimensions, the \(P_N\) equations are derived here for the time-independent form of the 1-D, monoenergetic transport equation in Cartesian geometries given by the following equation, where the external and fission source are bundled together into \(S\), which is assumed isotropic:
 
@@ -289,7 +289,6 @@ Function & \(S_4\) integration & \(S_6\) integration & \(S_8\) integration\\ [0.
 \label{table:3}
 \end{table}
 
-
 \circled{3} (a) \underline{Complexity}: In terms of complexity, deterministic methods are the most difficult to derive, understand, and encode. Diffusion theory is a deterministic method, and because it consists of one equation (assuming there is no anisotropic source, and that the time rate of change of the current with respect to its magnitude is small), it is not very complex to understand or encode. Diffusive equations also have very nice numerical properties, and do not require the messy stabilization methods required for nonlinear physics such as the Navier-Stokes equations. Deterministic methods require procedures for discretizing in space, angle, energy, and time, while this is not required of Monte Carlo methods. The Monte Carlo code Serpent, for instance, is continuous in all of these variables except time, but finite differencing time stepping is only performed in the depletion subroutines (I think?). Monte Carlo methods are the least complex because they require simply tracking particle motion around repeatedly, though they can become complex once weight windows and particle tracking are introduced to improve the statistics.\newline
 
 \underline{Accuracy}: Without the restrictions of computational cost, Monte Carlo methods are the most accurate, since there is no ``approximation'' of the physics or numerical errors that are always present in deterministic methods. For instance, in deterministic methods, there is always some type of truncation error that is present due to approximating a continuous process over a discrete mesh. In general, transport solutions are more accurate than diffusive solutions provided that the transport solutions were not performed with such a poor mesh that they are ``useless.'' However, the benefit of deterministic methods is that they can potentially be more accurate than Monte Carlo solutions when constrained to a fixed run time, especially for shielding problems where a very large number of particles would need to be run in order to obtain sufficient statistics.\newline
@@ -334,7 +333,76 @@ Function & \(S_4\) integration & \(S_6\) integration & \(S_8\) integration\\ [0.
 \end{comment}
 
 \clearpage
-(b) 
+(b) When expanded in the spherical harmonics, the external (assumed monoenergetic) source is:
+
+\begin{equation}
+\label{eq:12}
+S(\vv{r},E,\hat{\Omega})=\sum_{l=0}^{N}\sum_{m=-l}^{l}Y_{lm}(\hat{\Omega})S_{lm}(\vv{r},E)
+\end{equation}
+
+where from orthogonality:
+
+\begin{equation}
+\label{eq:121}
+S_{lm}=\int_{4\pi}^{}S(\vv{r},E,\hat{\Omega})Y_{lm}^{*}(\hat{\Omega})d\hat{\Omega}
+\end{equation}
+
+By combining Eq. \eqref{eq:12} with Eq. \eqref{eq:121}, the expansion becomes:
+
+\begin{equation}
+\label{eq:13}
+S(\vv{r},E,\hat{\Omega})=\int_{4\pi}^{}\sum_{l=0}^{N}\sum_{m=-l}^{l}Y_{lm}(\hat{\Omega})S(\vv{r},E,\hat{\Omega})Y_{lm}^{*}(\hat{\Omega})d\hat{\Omega}
+\end{equation}
+
+The addition theorem of spherical harmonics is:
+
+\begin{equation}
+\label{eq:SHAdditionTheorem}
+P_l(\hat{\Omega}'\cdot\hat{\Omega}) = \frac{4\pi}{2l+1} \sum_{m=-l}^{l} Y_{lm}^{*} (\hat{\Omega}') Y_{lm}(\hat{\Omega})
+\end{equation}
+
+Using this addition theorem in Eq. \eqref{eq:13}:
+
+\begin{equation}
+\label{eq:14}
+S(\vv{r},E,\hat{\Omega})=\int_{4\pi}^{}\sum_{l=0}^{N}S(\vv{r},E,\hat{\Omega})P_l(\hat{\Omega}'\cdot\hat{\Omega})\frac{2l+1}{4\pi}d\hat{\Omega}
+\end{equation}
+
+By requiring the expansion to only contain real components, it can be shown that:
+
+\begin{equation}
+\begin{aligned}
+\label{eq:FullExpansion5}
+P_l(\hat{\Omega}'\cdot\hat{\Omega})=\frac{4\pi}{2l+1}\left\lbrack Y_{l0}^e(\hat{\Omega})Y_{l0}^e(\hat{\Omega}')+\sum_{m=1}^{l}\left(Y_{lm}^e(\hat{\Omega})Y_{lm}^{e}(\hat{\Omega}')+Y_{lm}^o(\hat{\Omega})Y_{lm}^{o}(\hat{\Omega}')\right)\right\rbrack\\
+\end{aligned}
+\end{equation}
+
+Inserting Eq. \eqref{eq:FullExpansion5} into Eq. \eqref{eq:14}:
+
+\begin{equation}
+\label{eq:14}
+S(\vv{r},\hat{\Omega})=\int_{4\pi}^{}\sum_{l=0}^{N}S(\vv{r},\hat{\Omega})\left\lbrack Y_{l0}^e(\hat{\Omega})Y_{l0}^e(\hat{\Omega}')+\sum_{m=1}^{l}\left(Y_{lm}^e(\hat{\Omega})Y_{lm}^{e}(\hat{\Omega}')+Y_{lm}^o(\hat{\Omega})Y_{lm}^{o}(\hat{\Omega}')\right)\right\rbrack d\hat{\Omega}
+\end{equation}
+
+This can be shown in shorthand notation as:
+
+\begin{equation}
+\label{eq:14}
+S(\vv{r},\hat{\Omega})=\sum_{l=0}^{N}\left\lbrack q_{l0}(\vv{r})Y_{l0}^e(\hat{\Omega}')+\sum_{m=1}^{l}\left(q_{lm}(\vv{r})Y_{lm}^{e}(\hat{\Omega}')+s_{lm}(\vv{r})Y_{lm}^{o}(\hat{\Omega}')\right)\right\rbrack
+\end{equation}
+
+\begin{equation}
+\label{eq:200}
+\begin{aligned}
+q_{lm}(\vv{r})=\int_{4\pi}^{}S(\vv{r},\hat{\Omega})Y_{l0}^e(\hat{\Omega})\\
+s_{lm}(\vv{r})=\int_{4\pi}^{}S(\vv{r},\hat{\Omega})Y_{lm}^o(\hat{\Omega})\\
+\end{aligned}
+\end{equation}
+
+Hence, in order to compute the external source using quadrature rules, \(q_{lm}\) and \(s_{lm}\) must be computed using the quadrature rules according to their definitions in Eq. \eqref{eq:200}, and then the result summed according to Eq. \eqref{eq:14}.
+
+
+
 
 \circled{5} Some of the major nuclear data libraries include:
 
@@ -350,6 +418,9 @@ Function & \(S_4\) integration & \(S_6\) integration & \(S_8\) integration\\ [0.
 
 \section{Appendix}
 This section contains all the code used for each question. 
+
+\subsection{Question 2}
+\lstinputlisting[language=Matlab]{Q2.m}
 
 \subsection{Question 4}
 \lstinputlisting[language=Matlab]{Q4.m}
