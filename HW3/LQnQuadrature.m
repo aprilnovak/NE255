@@ -1,4 +1,4 @@
-function [wt, valid_full] = LQnQuadrature(N)
+function [integral] = LQnQuadrature(N, f)
 % This function provides the weights and quadrature points for a given N
 switch N
     case 4
@@ -89,6 +89,19 @@ for row = 1:(N*(N+2))
     end
 end
 
+% perform the integration over all octants
+integral = 0;
+j = 1;
+for i = 1:(N*(N+2))
+    integral = integral +  wt(j) * f(valid_full(i,1), valid_full(i,2), valid_full(i,3));
+    if (mod(i, 8) == 0)
+        j = j + 1;
+    end
+end
+
+% multiply result by pi/2 to scale
+integral = eval(integral) * pi/2;
+disp(sprintf('S-%i quadrature gives an integral of: %.8f', N, integral));
 
 end
 
