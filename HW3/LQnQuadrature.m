@@ -1,4 +1,5 @@
 function [wt, valid_full] = LQnQuadrature(N)
+% This function provides the weights and quadrature points for a given N
 switch N
     case 4
         mu_n = [0.3500212, 0.8688903];
