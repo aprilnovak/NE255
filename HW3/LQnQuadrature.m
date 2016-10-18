@@ -1,5 +1,7 @@
 function [integral] = LQnQuadrature(N, f)
-% This function provides the weights and quadrature points for a given N
+% This function provides the weights and quadrature points for a given N,
+% as well as performing the numerical integration.
+
 switch N
     case 4
         mu_n = [0.3500212, 0.8688903];
@@ -50,6 +52,7 @@ end
 
 valid = zeros(N*(N+2)/8, 3);
 k = 1;
+
 % check to see which quadrature combinations are valid (2-norm equals 1)
 for i = 1:total_possible
     norm = sqrt(total(i,1)^2 + total(i,2)^2 + total(i,3)^2);
@@ -104,4 +107,3 @@ integral = eval(integral) * pi/2;
 disp(sprintf('S-%i quadrature gives an integral of: %.8f', N, integral));
 
 end
-

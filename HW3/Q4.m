@@ -2,7 +2,7 @@
 clear all
 
 j = 1;              % subplot number
-real_plot = 1;      % 1 = plot real components, 0 = plot imaginary
+real_plot = 0;      % 1 = plot real components, 0 = plot imaginary
 
 for l = [0, 1, 2];
     for m = -l:l
@@ -12,21 +12,8 @@ for l = [0, 1, 2];
         phi = meshgrid(linspace(0, 2*pi, length(theta)));
         [Theta, Phi] = meshgrid(0:spacing:pi, linspace(0, 2*pi, length(theta)));
 
-        % compute Legendre polynomials
-        syms x
-
-        if ((l + m) == 0)
-            derivative = (x.^2 -1) .^ l;
-        elseif ((l + m) < 0)
-            disp('Incorrect combination of l and m');
-        else
-            derivative = diff((x.^2 - 1).^l, x); % first derivative is always computed
-            if (l + m) > 1
-                for i = 1:(l + m - 1)
-                    derivative = diff(derivative, x);
-                end
-            end
-        end
+        % compute Legendre polynomials derivative term
+        [derivative] = LegendrePolynomialDerivative(l, m);
 
         % plotting domain for mu
         x = mu;
