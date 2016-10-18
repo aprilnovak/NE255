@@ -394,12 +394,61 @@ S(\vv{r},\hat{\Omega})=\sum_{l=0}^{N}\left\lbrack q_{l0}(\vv{r})Y_{l0}^e(\hat{\O
 \begin{equation}
 \label{eq:200}
 \begin{aligned}
-q_{lm}(\vv{r})=\int_{4\pi}^{}S(\vv{r},\hat{\Omega})Y_{l0}^e(\hat{\Omega})\\
+q_{lm}(\vv{r})=\int_{4\pi}^{}S(\vv{r},\hat{\Omega})Y_{lm}^e(\hat{\Omega})\\
 s_{lm}(\vv{r})=\int_{4\pi}^{}S(\vv{r},\hat{\Omega})Y_{lm}^o(\hat{\Omega})\\
 \end{aligned}
 \end{equation}
 
-Hence, in order to compute the external source using quadrature rules, \(q_{lm}\) and \(s_{lm}\) must be computed using the quadrature rules according to their definitions in Eq. \eqref{eq:200}, and then the result summed according to Eq. \eqref{eq:14}.
+Hence, in order to compute the external source using quadrature rules, \(q_{lm}\) and \(s_{lm}\) must be computed using the quadrature rules according to their definitions in Eq. \eqref{eq:200}, and then the result summed according to Eq. \eqref{eq:14}. For this problem, \(S(\vv{r},\hat{\Omega})=1\). Hence, for this specific problem, we are computing the following with \(S_4\) quadrature:
+
+\begin{equation}
+\label{eq:141}
+S(\vv{r},\hat{\Omega})=\sum_{l=0}^{N}\left\lbrack q_{l0}(\vv{r})Y_{l0}^e(\hat{\Omega}')+\sum_{m=1}^{l}\left(q_{lm}(\vv{r})Y_{lm}^{e}(\hat{\Omega}')+s_{lm}(\vv{r})Y_{lm}^{o}(\hat{\Omega}')\right)\right\rbrack
+\end{equation}
+
+\begin{equation}
+\label{eq:2001}
+\begin{aligned}
+q_{lm}(\vv{r})=\int_{4\pi}^{}Y_{lm}^e(\hat{\Omega})\\
+s_{lm}(\vv{r})=\int_{4\pi}^{}Y_{lm}^o(\hat{\Omega})\\
+\end{aligned}
+\end{equation}
+
+Because level-symmetric quadrature is to be used in this problem, the code developed for question 2 is used for this question. Instead of integrating arbitrary functions, we are integrating the even and odd components of the spherical harmonics. From parts (a) and (b), the code for this question already computes \(Y_{lm}\). The spherical harmonics are:
+
+\begin{equation}
+\label{eq:SphericaltoAssociatedShort}
+Y_{lm}(\theta,\phi)=C_{lm}P_{lm}\exp{(im\phi)}
+\end{equation}
+
+where
+
+\begin{equation}
+\label{eq:Clm}
+C_{lm}=(-1)^m\sqrt{\frac{(2l+1)}{4\pi}\frac{(l-m)!}{(l+m)!}}
+\end{equation}
+
+The even and odd components of the spherical harmonics are defined as:
+
+\begin{equation}
+\label{eq:RealExpansionSH}
+\begin{aligned}
+Y_{lm}^e=\sqrt{2-\delta_{m0}}C_{lm}P_{lm}\cos{(m\phi)}\\
+Y_{lm}^o=\sqrt{2-\delta_{m0}}C_{lm}P_{lm}\sin{(m\phi)}\\
+\end{aligned}
+\end{equation}
+
+Hence, the vast majority of the code developed for parts (a) and (b) can be re-used. The code simply needs to be modified to compute \(Y_{lm}^e\) and \(Y_{lm}^o\). Then, the quadrature code developed for question 2 is used to perform the integration. The quadrature is set up to perform integration with respect to \(\mu,\eta,\) and \(\xi\), which are defined here to be (the definition varies upon which source they come from):
+
+\begin{equation}
+\label{eq:OmegaComponentsCartesian}
+\begin{aligned}
+ \xi \equiv \textrm{sin}(\theta)\textrm{cos}(\phi)=\Omega_x\\
+ \eta \equiv \textrm{sin}(\theta)\textrm{sin}(\phi)=\Omega_y\\
+ \mu \equiv \textrm{cos}(\theta)=\Omega_z\\
+\end{aligned}
+\end{equation}
+
 
 
 
