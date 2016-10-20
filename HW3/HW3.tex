@@ -89,7 +89,7 @@
 \setcounter{tocdepth}{4}
 \begin{document}
 
-\textbf{NE 255: HW3}4\hfill April Novak\newline
+\textbf{NE 255: HW3}\hfill April Novak\newline
 
 \circled{1} Due to the added complexity associated with higher dimensions, the \(P_N\) equations are derived here for the time-independent form of the 1-D, monoenergetic transport equation in Cartesian geometries given by the following equation, where the external and fission source are bundled together into \(S\), which is assumed isotropic:
 
@@ -448,8 +448,37 @@ Hence, the vast majority of the code developed for parts (a) and (b) can be re-u
 \end{aligned}
 \end{equation}
 
-I finished all the code for this, I just didn't finish the plotting. The code is all in \texttt{Q4b.m}, hopefully I can get partial credit (I thought it'd be ok to turn this in by 5 pm).
+Fig. \ref{fig:zero}, \ref{fig:one}, and \ref{fig:two} show the source plotted against \(\theta\) and \(\phi\) for \(l=0,1,2, 3\).
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=15cm]{l_0.pdf}
+  \caption{Source expanded in spherical harmonics for \(l=0\).}
+  \label{fig:zero}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=15cm]{l_1.pdf}
+  \caption{Source expanded in spherical harmonics for \(l=1\).}
+  \label{fig:one}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=15cm]{l_2.pdf}
+  \caption{Source expanded in spherical harmonics for \(l=2\).}
+  \label{fig:two}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=15cm]{l_3.pdf}
+  \caption{Source expanded in spherical harmonics for \(l=3\).}
+  \label{fig:three}
+\end{figure}
+
+\clearpage
 \circled{5} Some of the major nuclear data libraries include:
 
 \begin{enumerate}
