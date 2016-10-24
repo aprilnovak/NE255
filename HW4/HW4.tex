@@ -89,9 +89,108 @@
 \setcounter{tocdepth}{4}
 \begin{document}
 
-\textbf{NE 255: HW4}1, 2, 3, 4\hfill April Novak\newline
+\textbf{NE 255: HW4}2, 3, 4\hfill April Novak\newline
 
-\circled{1}\newline
+\circled{1} The \(S_N\) equations provide the framework to discretize the angular flux in angle, but the equations still must be discretized in space. In general, there are two different means to perform spatial discretization - cell balance methods, which preserve conservation of the solution, and finite element methods, which do not necessarily preserve conservation of the solution. In a single mesh cell, cell balance methods will provide a statement that is equivalent to conservation of neutrons, while finite element methods satisfy the governing equation in a weighted-integral sense. For simplicity, all of the spatial discretization schemes discussed here are applied to the simplified transport equation that neglects time dependence and assumes some angular discretization has already been applied to \(\psi\) such that it is independent of angle (in each of these equations):
+
+\begin{equation}
+\label{eq:SimpleTE}
+\hat{\Omega}\cdot\nabla\psi(\vv{r},E)+\Sigma_t({\vv{r},E})\psi(\vv{r},E)=S(\vv{r},E)
+\end{equation}
+
+where \(S\) represents the scattering, fission, and external sources. There will be one of these equations for each discrete direction in the \(S_N\) method. For all the following discretization schemes, a Cartesian mesh given in the figure in the \texttt{spatial-disr.pdf} is assumed, with \(i\) representing indices in the \(x\)-direction, \(j\) in the \(y\)-direction, and \(k\) in the \(z\)-direction.
+
+Cell balance schemes point values for the solution \(\psi\) over a discretized spatial mesh. With the definitions for the components of \(\hat{\Omega}\) as \(\hat{\Omega}=\mu\hat{x}+\eta\hat{y}+\xi\hat{z}\), integrating Eq. \eqref{eq:SimpleTE} over the mesh cell gives:
+
+\begin{equation}
+\int_{x_{i-1/2}}^{x_{i+1/2}}dx\mu \frac{\partial \psi}{\partial x}+\int_{y_{j-1/2}}^{y_{j+1/2}}dy\eta \frac{\partial \psi}{\partial y}+\int_{z_{k-1/2}}^{z_{k+1/2}}dz\xi \frac{\partial \psi}{\partial z}+\Sigma_{t,ijk}{E}\psi_{ijk}(\vv{r},E)=S_{ijk}(E)
+\end{equation}
+
+where it has been assumed that \(\Sigma_t\) and \(S\) are constant over the cell, and are represented by their cell-centered values. In addition, the energy-dependence has been dropped. Without approximation, the integrals in the above reduce to:
+
+\begin{equation}
+\label{eq:DiscretizedCartesianTE}
+\frac{\mu}{\Delta_i}(\psi_{i+1/2}-\psi_{i-1/2})+\frac{\eta}{\Delta_j}(\psi_{j+1/2}-\psi_{j-1/2})+\frac{\xi}{\Delta_k}(\psi_{k+1/2}-\psi_{k-1/2})+\Sigma_{t,ijk}\psi_{ijk}=S_{ijk}
+\end{equation}
+
+With this discretization method, there must be some way to relate the cell-centered value \(ijk\) to the face values. The different options we have for discretization are related to the choices we can make for how to relate these quantities. The Diamond Difference and Step Difference schemes choose the following relationship:
+
+\begin{equation}
+\label{eq:DifferencingRelationship}
+\psi_{i\pm1/2}=\frac{2}{1\pm\alpha}\psi_{ijk}-\frac{1\mp\alpha}{1\pm\alpha}\bar{\psi}_{i\mp1/2}
+\end{equation}
+
+and likewise for the \(y\) and \(z\) directions. \(\bar{\psi}\) represents a known flux, and depending on whether a sweep is being performed in the positive-\(\mu\) direction (\(\bar{\psi}_{i-1/2}\) is known) or in the negative-\(\mu\) direction (\(\bar{\psi}_{i+1/2}\) is known), either the + or - option is selected in Eq. \eqref{eq:DifferencingRelationship}. Once the sweep direction is known, the relationship in Eq. \eqref{eq:DifferencingRelationship} is used in the governing equation Eq. \eqref{eq:DiscretizedCartesianTE} to solve for the cell-centered flux in terms of only known quantities:
+
+\begin{equation}
+\label{eq:psi_ijk}
+\psi_{ijk}=\frac{S_{ijk}+\frac{2}{1\pm\alpha}\left(\frac{|\mu|}{\Delta_i}\bar{\psi}_{i\mp1/2}+\frac{|\eta|}{\Delta_j}\bar{\psi}_{j\mp1/2}+\frac{|\xi|}{\Delta_k}\bar{\psi}_{k\mp1/2}\right)}{\Sigma_{t,ijk}+\frac{2}{1\pm\alpha}\left(\frac{|\mu|}{\Delta_i}+\frac{|\eta|}{\Delta_j}+\frac{|\xi|}{\Delta_k}\right)}
+\end{equation}
+
+where it has been assumed that \(\alpha\) is selected to be the same in all directions. \(\alpha\) is a parameter used to tune the spatial discretization. Common choices for \(\alpha\) have their own names. The Diamond Difference method sets \(\alpha=0\). With this choice, the cell-centered flux is an average of the face fluxes. The Step Difference method, on the other hand, sets \(\alpha=\pm1\) such that the cell-centered flux is set equal to the incoming face flux (choose 1 or -1 accordingly so that Eq. \eqref{eq:DifferencingRelationship} provides an expression for \(\psi_{ijk}\) in terms of the known incoming face flux).The Diamond Difference method is second-order in space, while the Step Difference method is only first-order. 
+
+The objective is to choose the correct relationship in Eq. \eqref{eq:DifferencingRelationship} such that the known quantities, or the incoming fluxes to each cell, can be used to compute the unknown quantities, or the outgoing fluxes for each cell, in a ``sweep'' over the spatial mesh. Each of these sweeps is performed for each individual flux \(\psi(\hat{\Omega}_a\). Now that the numerical method has been set up, the sweeping process can be described in more detail for the different situations prompted in the homework:\newline
+
+\textbf{(a)}: For a sweep in the positive-\(\mu\) direction, we supposedly know \(\bar{\psi}_{i-1/2}\), so we would relate the cell-centered flux to the outgoing flux in the following way:
+
+\begin{equation}
+\label{eq:PositiveMu}
+\begin{aligned}
+\psi_{i+1/2}=\frac{2}{1+\alpha}\psi_{ijk}-\frac{1-\alpha}{1+\alpha}\bar{\psi}_{i-1/2}\quad\rightarrow\quad\psi_{ijk}=\frac{1}{2}\left\lbrack(1+\alpha)\psi_{i+1/2}+(1-\alpha)\bar{\psi}_{i-1/2}\right\rbrack\\
+\end{aligned}
+\end{equation}
+
+So, to perform the sweep, we would begin at the boundary at which a boundary condition is specified. At this boundary, the incoming flux \(\bar{\psi}_{i-1/2}\) is known. Then, Eq. \eqref{eq:psi_ijk} is used to determine the cell-centered flux \(\psi_{ijk}\). Then, finally, Eq. \eqref{eq:PositiveMu} is used to compute the outgoing fluxes from the cell-centered fluxes. To be more precise, the steps for a Diamond Difference method (\(\alpha=0\)) are:
+
+\begin{enumerate}
+\item Begin at the boundary at which the incoming fluxes are known. Compute the cell-centered fluxes using:
+
+\begin{equation}
+\psi_{ijk}=\frac{S_{ijk}+2\left(\frac{|\mu|}{\Delta_i}\bar{\psi}_{i-1/2}+\frac{|\eta|}{\Delta_j}\bar{\psi}_{j-1/2}+\frac{|\xi|}{\Delta_k}\bar{\psi}_{k-1/2}\right)}{\Sigma_{t,ijk}+2\left(\frac{|\mu|}{\Delta_i}+\frac{|\eta|}{\Delta_j}+\frac{|\xi|}{\Delta_k}\right)}
+\end{equation}
+
+\item Then, compute the outgoing fluxes using:
+
+\begin{equation}
+\psi_{i+1/2}=2\psi_{ijk}-\bar{\psi}_{i-1/2}
+\end{equation}
+
+\item Repeat steps 1 and 2 for the remaining cells, using the outgoing fluxes from step 2 as the new incoming fluxes in step 1. If there is no fission, scattering, or external source, then only one sweep is needed. On the other hand, if any of these sources are present, then after each sweep, an updated source \(S_{ijk}\) must be computed, and the process repeated until reaching convergence.
+\end{enumerate}
+
+\textbf{(b)}: For a sweep in the negative-\(\mu\) direction, we supposedly know \(\bar{\psi}_{i+1/2}\), so we would relate the cell-centered flux to the outgoing flux in the following way:
+
+\begin{equation}
+\label{eq:NegativeMu}
+\begin{aligned}
+\psi_{i-1/2}=\frac{2}{1-\alpha}\psi_{ijk}-\frac{1+\alpha}{1-\alpha}\bar{\psi}_{i+1/2}\quad\rightarrow\quad\psi_{ijk}=\frac{1}{2}\left\lbrack(1+\alpha)\psi_{i+1/2}+(1-\alpha)\bar{\psi}_{i-1/2}\right\rbrack\\
+\end{aligned}
+\end{equation}
+
+Very similar to a sweep in the positive direction, we would begin at the boundary at which a boundary condition is specified. At this boundary, the incoming flux \(\bar{\psi}_{i+1/2}\) is known. Then, Eq. \eqref{eq:psi_ijk} is used to determine the cell-centered flux \(\psi_{ijk}\). Then, finally, Eq. \eqref{eq:NegativeMu} is used to compute the outgoing fluxes from the cell-centered fluxes. To be more precise, the steps for a Diamond Difference method (\(\alpha=0\)) are:
+
+\begin{enumerate}
+\item Begin at the boundary at which the incoming fluxes are known. Compute the cell-centered fluxes using:
+
+\begin{equation}
+\psi_{ijk}=\frac{S_{ijk}+2\left(\frac{|\mu|}{\Delta_i}\bar{\psi}_{i+1/2}+\frac{|\eta|}{\Delta_j}\bar{\psi}_{j+1/2}+\frac{|\xi|}{\Delta_k}\bar{\psi}_{k+1/2}\right)}{\Sigma_{t,ijk}+2\left(\frac{|\mu|}{\Delta_i}+\frac{|\eta|}{\Delta_j}+\frac{|\xi|}{\Delta_k}\right)}
+\end{equation}
+
+\item Then, compute the outgoing fluxes using:
+
+\begin{equation}
+\psi_{i-1/2}=2\psi_{ijk}-\bar{\psi}_{i+1/2}
+\end{equation}
+
+\item Repeat steps 1 and 2 for the remaining cells, using the outgoing fluxes from step 2 as the new incoming fluxes in step 1. If there is no fission, scattering, or external source, then only one sweep is needed. On the other hand, if any of these sources are present, then after each sweep, an updated source \(S_{ijk}\) must be computed, and the process repeated until reaching convergence.
+\end{enumerate}
+
+The only difference between a sweep in the positive and negative \(\mu\)-directions is the notation on which flux is known - either \(\psi_{i+1/2}\) or \(\psi_{i-1/2}\) is known.\newline
+
+\textbf{(c)} If reflective boundary conditions are present, then begin from the side of the domain for which the conditions are known. Apply steps 1-3 listed in part (a) (if moving in the \(\mu>0\) direction) or steps 1-3 listed in part (b) (if moving in the \(\mu<0\) direction) in order to reach the reflecting boundary from a boundary at which the incoming flux is known. Using the equations in either (a) or (b) is determined by which boundary has values specified - begin from that boundary, and sweep until reaching the reflecting boundary. Then, once at the reflecting boundary, apply the condition that \(\psi_{N+1, i+1/2}=\psi_{N+1, i-1/2}\), where \(N\) is the number of mesh cells such that \(N+1\) is the number of the node on the right face, assuming a linear, Cartesian grid. This condition is applied such that a sweep then begins moving in the opposite direction of the first sweep (and so apply steps 1-3 in part (a) if initially the steps from part (b) were applied, and vice versa. These steps are not repeated here to avoid redundancy). After each double sweep, updates are performed to \(S_{ijk}\). This process is repeated until reaching convergence. If reflective boundary conditions exist on both ends of the domain, then an initial guess for the incoming fluxes at the starting point must be made, and then each double sweep is again halted to perform updates to \(S_{ijk}\) until reaching convergence.\newline
+
+\textbf{(d)} In a single sweep, each cell requires that the incoming fluxes and source \(S_{ijk}\) to proceed with the sweep. To compute \(S_{ijk}\), the scattering, fission, and external source, we need to have all flux moments for that cell. Once an updated \(S_{ijk}\) is computed however, those flux moments can be discarded, except those that contribute to the incoming flux of the next cell. So, as we sweep through the mesh, once a cell computation is complete, the incoming and cell-centered flux values for that cell can be discarded so long as \(S_{ijk}\) has been updated for the next sweep.
+
 \circled{2}\newline
 \circled{3}\newline
 \circled{4}\newline 
