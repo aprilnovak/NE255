@@ -189,11 +189,104 @@ The only difference between a sweep in the positive and negative \(\mu\)-directi
 
 \textbf{(c)} If reflective boundary conditions are present, then begin from the side of the domain for which the conditions are known. Apply steps 1-3 listed in part (a) (if moving in the \(\mu>0\) direction) or steps 1-3 listed in part (b) (if moving in the \(\mu<0\) direction) in order to reach the reflecting boundary from a boundary at which the incoming flux is known. Using the equations in either (a) or (b) is determined by which boundary has values specified - begin from that boundary, and sweep until reaching the reflecting boundary. Then, once at the reflecting boundary, apply the condition that \(\psi_{N+1, i+1/2}=\psi_{N+1, i-1/2}\), where \(N\) is the number of mesh cells such that \(N+1\) is the number of the node on the right face, assuming a linear, Cartesian grid. This condition is applied such that a sweep then begins moving in the opposite direction of the first sweep (and so apply steps 1-3 in part (a) if initially the steps from part (b) were applied, and vice versa. These steps are not repeated here to avoid redundancy). After each double sweep, updates are performed to \(S_{ijk}\). This process is repeated until reaching convergence. If reflective boundary conditions exist on both ends of the domain, then an initial guess for the incoming fluxes at the starting point must be made, and then each double sweep is again halted to perform updates to \(S_{ijk}\) until reaching convergence.\newline
 
-\textbf{(d)} In a single sweep, each cell requires that the incoming fluxes and source \(S_{ijk}\) to proceed with the sweep. To compute \(S_{ijk}\), the scattering, fission, and external source, we need to have all flux moments for that cell. Once an updated \(S_{ijk}\) is computed however, those flux moments can be discarded, except those that contribute to the incoming flux of the next cell. So, as we sweep through the mesh, once a cell computation is complete, the incoming and cell-centered flux values for that cell can be discarded so long as \(S_{ijk}\) has been updated for the next sweep.
+\textbf{(d)} In a single sweep, each cell requires that the incoming fluxes and source \(S_{ijk}\) to proceed with the sweep. To compute \(S_{ijk}\), the scattering, fission, and external source, we need to have all flux moments for that cell. Once an updated \(S_{ijk}\) is computed however, those flux moments can be discarded, except those that contribute to the incoming flux of the next cell. So, as we sweep through the mesh, once a cell computation is complete, the incoming and cell-centered flux values for that cell can be discarded so long as \(S_{ijk}\) has been updated for the next sweep.\newline
 
-\circled{2}\newline
+\circled{2}Truncation error can be quantified for a 1-D, zero-source flux. This flux signifies the flux of neutrons moving with angle \(\hat{\Omega}_a\), but for simplicity the \(a\) subscripts on \(\psi\) and \(\mu\) are not retained throughout this problem, but are left to be implied.\newline
+
+\textbf{(a)}: The equation to be solved analytically is:
+
+\begin{equation}
+\label{eq:Ex2}
+\mu\frac{d\psi}{dx}+\Sigma_t\psi=0
+\end{equation}
+
+The analytical solution to this equation is:
+
+\begin{equation}
+\frac{d\psi}{\psi}=\frac{-\Sigma_t}{|\mu|}dx\quad\rightarrow\quad\int_{x}^{x^{'}}\frac{d\psi}{\psi}=\int_{x}^{x^{'}}\frac{-\Sigma_t}{|\mu|}dx
+\end{equation}
+
+Performing the integration:
+
+\begin{equation}
+\label{eq:124}
+\ln{\left(\frac{\psi_{x^{'}}}{\psi_{x}}\right)}=\frac{-\Sigma_t}{|\mu|}\delta_i\quad\rightarrow\quad\psi_{x^{'}}=\exp{\left(\frac{-\Sigma_t}{|\mu|}\delta_i\right)}\psi_{x}
+\end{equation}
+
+where \(\delta_i\equiv x^{'}-x\).\newline
+
+\textbf{(b)}: For a Cartesian grid with \(x^{'}=x_{i+1/2}\) and \(x=x_{i-1/2}\), Eq. \eqref{eq:124} becomes:
+
+\begin{equation}
+\label{eq:128}
+\psi_{i+1/2}=\exp{\left(\frac{-\Sigma_t}{|\mu|}\Delta_i\right)}\psi_{i-1/2}
+\end{equation}
+
+\begin{equation}
+\label{eq:1241}
+\ln{\left(\frac{\psi_{i+1/2}}{\psi_{i-1/2}}\right)}=\frac{-\Sigma_t}{|\mu|}\Delta_i\quad\rightarrow\quad\psi_{i+1/2}=\exp{\left(\frac{-\Sigma_t}{|\mu|}\delta_i\right)}\psi_{i-1/2}
+\end{equation}
+
+where \(\Delta_i\equiv x_{i+1/2}-x_{i-1/2}\). Introducing the definition \(h=\Sigma_t\Delta_i/2|\mu|\), the above becomes:
+
+\begin{equation}
+\label{eq:128}
+\ln{\left(\frac{\psi_{i+1/2}}{\psi_{i-1/2}}\right)}=-2h\quad\rightarrow\quad\psi_{i+1/2}=\exp{\left(h^2\right)}\psi_{i-1/2}
+\end{equation}
+
+\textbf{(c)}: To determine the numerical equivalent of Eq. \eqref{eq:128}, the diamond difference equations give \(\psi_{ijk}\) in terms of the face flux values as:
+
+\begin{equation}
+\label{eq:2c}
+\psi_{i+1/2}=2\psi_{ijk}-\bar{\psi}_{i-1/2}
+\end{equation}
+
+The discretized form of the transport equation is already given in Eq. \eqref{eq:DiscretizedCartesianTE}. Inserting Eq. \eqref{eq:2c} into the 1-D form of Eq. \eqref{eq:DiscretizedCartesianTE} (with the source term neglected for this specific problem) for \(\psi_{ijk}\) gives a second relationship between \(\psi_{i+1/2}\) and \(\psi_{i-1/2}\):
+
+\begin{equation}
+\frac{\mu}{\Delta_i}(\psi_{i+1/2}-\psi_{i-1/2})+\Sigma_{t}\frac{1}{2}\left(\psi_{i+1/2}+\psi_{i-1/2}\right)=0
+\end{equation}
+
+Rearranging, and inserting the definition for \(h\):
+
+\begin{equation}
+\label{eq:PositiveConditon}
+\psi_{i+1/2}=\frac{1-h}{1+h}\psi_{i-1/2}
+\end{equation}
+
+\textbf{(d)}: 
+
+\textbf{(e)}: From Eq. \eqref{eq:PositiveConditon}, it is clear that \(\psi_{i+1/2}\) could be negative if \(h>1\). In other words, from the definition of \(h\), the flux can be negative if:
+
+\begin{equation}
+\Delta_i>\frac{2|\mu|}{\Sigma_t}
+\end{equation}
+
+From a cost perspective, the coarser the mesh, the better, since then the simulation will not be overly-limited by the mesh requirements. The conditions for which the mesh refinement will cause the most complications (i.e. produce negative fluxes) is for small \(|\mu|\) or large \(\Sigma_t\). In order to avoid negative fluxes, we require \(\Delta_i<\frac{2|\mu|}{\Sigma_t}\). 
+
 \circled{3}\newline
-\circled{4}\newline 
+\circled{4} The 1-D form of the multigroup transport equation is:
+
+\begin{equation}
+\frac{\mu_a}{h_i}\left(\psi_{a,i+1/2}^g-\psi_{a,i-1/2}^g\right)+\Sigma_{t,i}^g\psi_{a,i}^g=2\pi\sum_{a=1}^{N}w_a\underbrace{\sum_{g^{'}=1}^G\Sigma_{s,i}(g^{'}\rightarrow g, a^{'}\rightarrow a)\psi_{a^{'},i}^{g^{'}}}_\text{in-scattering}+\underbrace{\frac{\chi_g}{2}\sum_{g^{'}=1}^{G}\nu_{g^{'}}\Sigma_{f,i}^{g^{'}}\phi_{i}^{g^{'}}}_\text{fission}+\frac{1}{2}Q_i^g\\
+\end{equation}
+
+Writing the general system of equations for five groups (\(G=5\)) (each equation applies to a single angular direction \(\mu_a\)) gives:
+
+\begin{equation}
+\begin{aligned}
+\frac{\mu_a}{h_i}\left(\psi_{a,i+1/2}^1-\psi_{a,i-1/2}^1\right)+\Sigma_{t,i}^1\psi_{a,i}^1=2\pi\sum_{a=1}^{N}w_a\sum_{g^{'}=1}^2\Sigma_{s,i}(g^{'}\rightarrow 1, a^{'}\rightarrow a)\psi_{a^{'},i}^{g^{'}}+\frac{\chi_1}{2}\sum_{g^{'}=1}^{G}\nu_{g^{'}}\Sigma_{f,i}^{g^{'}}\phi_{i}^{g^{'}}+\frac{1}{2}Q_i^1\\
+\frac{\mu_a}{h_i}\left(\psi_{a,i+1/2}^2-\psi_{a,i-1/2}^2\right)+\Sigma_{t,i}^2\psi_{a,i}^2=2\pi\sum_{a=1}^{N}w_a\sum_{g^{'}=1}^2\Sigma_{s,i}(g^{'}\rightarrow 2, a^{'}\rightarrow a)\psi_{a^{'},i}^{g^{'}}+\frac{\chi_2}{2}\sum_{g^{'}=1}^{G}\nu_{g^{'}}\Sigma_{f,i}^{g^{'}}\phi_{i}^{g^{'}}+\frac{1}{2}Q_i^2\\
+\frac{\mu_a}{h_i}\left(\psi_{a,i+1/2}^3-\psi_{a,i-1/2}^3\right)+\Sigma_{t,i}^3\psi_{a,i}^3=2\pi\sum_{a=1}^{N}w_a\sum_{g^{'}=1}^5\Sigma_{s,i}(g^{'}\rightarrow 3, a^{'}\rightarrow a)\psi_{a^{'},i}^{g^{'}}+\frac{\chi_3}{2}\sum_{g^{'}=1}^{G}\nu_{g^{'}}\Sigma_{f,i}^{g^{'}}\phi_{i}^{g^{'}}+\frac{1}{2}Q_i^3\\
+\frac{\mu_a}{h_i}\left(\psi_{a,i+1/2}^4-\psi_{a,i-1/2}^4\right)+\Sigma_{t,i}^4\psi_{a,i}^4=2\pi\sum_{a=1}^{N}w_a\sum_{g^{'}=1}^5\Sigma_{s,i}(g^{'}\rightarrow 4, a^{'}\rightarrow a)\psi_{a^{'},i}^{g^{'}}+\frac{\chi_4}{2}\sum_{g^{'}=1}^{G}\nu_{g^{'}}\Sigma_{f,i}^{g^{'}}\phi_{i}^{g^{'}}+\frac{1}{2}Q_i^4\\
+\frac{\mu_a}{h_i}\left(\psi_{a,i+1/2}^5-\psi_{a,i-1/2}^5\right)+\Sigma_{t,i}^5\psi_{a,i}^5=2\pi\sum_{a=1}^{N}w_a\sum_{g^{'}=1}^5\Sigma_{s,i}(g^{'}\rightarrow 5, a^{'}\rightarrow a)\psi_{a^{'},i}^{g^{'}}+\frac{\chi_5}{2}\sum_{g^{'}=1}^{G}\nu_{g^{'}}\Sigma_{f,i}^{g^{'}}\phi_{i}^{g^{'}}+\frac{1}{2}Q_i^5\\
+\end{aligned}
+\end{equation}
+
+Because neutrons are assumed to not be able to scatter from thermal groups to fast groups, \(\Sigma_{s,i}(3,4,5\rightarrow 1,2\) is zero, where the numbers listed as comma-separated values are intended to indicate that, for example, \(\Sigma_{s,i}(3\rightarrow 1)=0\), \(\Sigma_{s,i}(3\rightarrow 2)=0\), \(\cdots\) , and \(\Sigma_{s,i}(5\rightarrow2)=0\). It is assumed that neutrons of any energy levels can induce fission, and the external source contributes neutrons of all energies. Also, while it is typical to assume that no thermal neutrons are born from fission (\(\chi_3=\chi_4=\chi_5=0\)), this is not assumed here based on the problem statement.
+
+Because the thermal groups are assumed to upscatter, for groups 3, 4, and 5, neutrons of any group can scatter into groups 3, 4, and 5.
+
 \section{Appendix}
 This section contains all the code used for each question. 
 
