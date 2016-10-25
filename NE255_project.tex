@@ -1,0 +1,123 @@
+\documentclass[10pt]{article}
+\usepackage[letterpaper]{geometry}
+\geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+\usepackage{setspace}
+\usepackage{ragged2e}
+\usepackage{color}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage[font=small,labelfont=bf,labelsep=period]{caption}
+\usepackage[english]{babel}
+\usepackage{indentfirst}
+\usepackage{array}
+\usepackage{makecell}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{arydshln}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xfrac}
+\usepackage{etoolbox}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{dcolumn}
+\usepackage{hyperref}
+\usepackage{courier}
+\usepackage{url}
+\usepackage{esvect}
+\usepackage{commath}
+\usepackage{verbatim} % for block comments
+\usepackage{enumitem}
+\usepackage{hyperref} % for clickable table of contents
+\usepackage{braket}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{gensymb}
+\usepackage{longtable}
+\usepackage{soul} % for striking out text
+\usepackage[makeroom]{cancel}	% to cancel out text
+\usepackage[mathscr]{euscript}
+
+\usepackage{listings}
+\lstset{
+    frame=single,
+    breaklines=true,
+    postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}}
+}
+
+% for circled numbers
+\usepackage{tikz}
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw,inner sep=2pt] (char) {#1};}}
+
+
+\titleclass{\subsubsubsection}{straight}[\subsection]
+
+% define new command for triple sub sections
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+\renewcommand\theparagraph{\thesubsubsubsection.\arabic{paragraph}} % optional; useful if paragraphs are to be numbered
+
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
+  {3.25ex \@plus1ex \@minus .2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\def\toclevel@subsubsubsection{4}
+\def\toclevel@paragraph{5}
+\def\toclevel@paragraph{6}
+\def\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+\def\l@paragraph{\@dottedtocline{5}{10em}{5em}}
+\def\l@subparagraph{\@dottedtocline{6}{14em}{6em}}
+\makeatother
+
+\newcommand{\volume}{\mathop{\ooalign{\hfil$V$\hfil\cr\kern0.08em--\hfil\cr}}\nolimits}
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+
+% Wolverine fundamental governing equations, created as commands since they're used so frequently in the manual
+\newcommand{\massconservation}{\epsilon\frac{\partial\rho_f}{\partial t} + \nabla\cdot(\epsilon\rho_f\vv{V})=0} % Eq. \eqref{eq:ContinuityPorous1}
+\newcommand{\momentumconservation}{\epsilon\frac{\partial(\rho_f\vv{V})}{\partial t}+\nabla\cdot(\epsilon\rho_f\vv{V}\vv{V})+\nabla\cdot(\epsilon P\textbf{I})-\epsilon\rho_f\vv{g}+\mathscr{D}\mu\epsilon\vv{V}+\mathscr{F}\epsilon^2\rho_f|\vv{V}|\vv{V}=0} % Eq. \eqref{eq:MomentumPRONGHORN}
+\newcommand{\fluidenergyconservation}{\epsilon\frac{\partial (\rho_f E)}{\partial t}+\nabla\cdot(\epsilon h_f\rho_f\vv{V})-\nabla\cdot(\epsilon k_f\nabla T)-\epsilon\rho_f \vv{g}\cdot\vv{V}+\alpha(T_f-T_s)-q_f=0} % Eq. \eqref{EnergyBalance7}
+\newcommand{\solidenergyconservation}{(1-\epsilon)\rho_sC_{p,s}\frac{\partial T_s}{\partial t}-\nabla\cdot(\kappa_s\nabla T_s)+\alpha(T_s-T_f)-q_s=0} % Eq. \eqref{eq:SolidPorous}
+
+
+\begin{document}
+\textbf{Proposed NE 255 Project}\hfill April Novak\newline
+
+PRONGHORN, a 3-D finite element Computational Fluid Dynamics (CFD) code currently in development, solves the compressible Navier-Stokes equations in a porous media, shown below:
+
+\begin{equation}
+\begin{aligned}
+\massconservation\\
+\momentumconservation\\
+\fluidenergyconservation\\
+\solidenergyconservation\\
+\end{aligned}
+\end{equation}
+
+These 6 coupled equations are difficult to solve numerically due to inherent instabilities associated with convection. Viscous forces, which essentially act to diffuse momentum, are absent from these equations because for reactor applications, viscous forces are negligible relative to the inertial forces. However, a significant difficulty associated with the Euler equations solved in PRONGHORN is that they are inherently unstable for \(Pe=h|\vv{V}|/2k>1\), where \(h\) is the mesh spacing, \(\vv{V}\) the velocity, and \(k\) the thermal conductivity. Peclet numbers for reactor applications are on the order of \(10^4\), and hence some sort of stabilization method is required in PRONGHORN.
+
+The proposed project for NE 255 is to apply the Streamline Upwind Petrov-Galerkin (SUPG) stabilization method to the PRONGHORN equations, to verify correct implementation by observing convergence rates, and finally testing the stabilization on several problems of interest to display the benefits of stabilization in obtaining physically-meaningful results. The rough timeline is:
+
+\begin{enumerate}
+\item Create a corresponding SUPG kernel (and a Method of Manufactured Solutions test) for each kernel in PRONGHORN - 2 weeks
+\item Test the convergence behavior of these kernels to verify correct implementation - 1 week
+\item Develop the input files and run simulations on shockwave problems to demonstrate the improved physical accuracy of the solutions (how well are numerical oscillations removed by the stabilization?) - 2 weeks
+\end{enumerate}
+
+\end{document}
