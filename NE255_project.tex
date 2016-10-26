@@ -97,7 +97,7 @@
 
 
 \begin{document}
-\textbf{Proposed NE 255 Project}\hfill April Novak\newline
+\textbf{Proposed NE 255 Project}\hfill April Novak, Chris Keckler\newline
 
 PRONGHORN, a 3-D finite element Computational Fluid Dynamics (CFD) code currently in development, solves the compressible Navier-Stokes equations in a porous media, shown below:
 
@@ -118,6 +118,15 @@ The proposed project for NE 255 is to apply the Streamline Upwind Petrov-Galerki
 \item Create a corresponding SUPG kernel (and a Method of Manufactured Solutions test) for each kernel in PRONGHORN - 2 weeks
 \item Test the convergence behavior of these kernels to verify correct implementation - 1 week
 \item Develop the input files and run simulations on shockwave problems to demonstrate the improved physical accuracy of the solutions (how well are numerical oscillations removed by the stabilization?) - 2 weeks
+\item Tentatively, we will investigate a second stabilization method, Pressure-Stabilized Petrov Galerkin (PSPG) and its convergence properties (time pending)
+\end{enumerate}
+
+The division of work will be approximately selected as:
+
+\begin{enumerate}
+\item April will create the SUPG kernels, Chris will create the verifications tests and produce the convergence plots
+\item Chris will create the boundary conditions needed to accommodate the specific verification tests
+\item Chris will perform the literature review and create PSPG kernels for the momentum equation alone for faster comparison with the SUPG stabilization
 \end{enumerate}
 
 \end{document}
