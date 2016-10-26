@@ -89,7 +89,7 @@
 \setcounter{tocdepth}{4}
 \begin{document}
 
-\textbf{NE 255: HW4}2, 3, 4\hfill April Novak\newline
+\textbf{NE 255: HW4}2, 3\hfill April Novak\newline
 
 \circled{1} The \(S_N\) equations provide the framework to discretize the angular flux in angle, but the equations still must be discretized in space. In general, there are two different means to perform spatial discretization - cell balance methods, which preserve conservation of the solution, and finite element methods, which do not necessarily preserve conservation of the solution. In a single mesh cell, cell balance methods will provide a statement that is equivalent to conservation of neutrons, while finite element methods satisfy the governing equation in a weighted-integral sense. For simplicity, all of the spatial discretization schemes discussed here are applied to the simplified transport equation that neglects time dependence and assumes some angular discretization has already been applied to \(\psi\) such that it is independent of angle (in each of these equations):
 
@@ -191,7 +191,7 @@ The only difference between a sweep in the positive and negative \(\mu\)-directi
 
 \textbf{(d)} In a single sweep, each cell requires that the incoming fluxes and source \(S_{ijk}\) to proceed with the sweep. To compute \(S_{ijk}\), the scattering, fission, and external source, we need to have all flux moments for that cell. Once an updated \(S_{ijk}\) is computed however, those flux moments can be discarded, except those that contribute to the incoming flux of the next cell. So, as we sweep through the mesh, once a cell computation is complete, the incoming and cell-centered flux values for that cell can be discarded so long as \(S_{ijk}\) has been updated for the next sweep.\newline
 
-\circled{2}Truncation error can be quantified for a 1-D, zero-source flux. This flux signifies the flux of neutrons moving with angle \(\hat{\Omega}_a\), but for simplicity the \(a\) subscripts on \(\psi\) and \(\mu\) are not retained throughout this problem, but are left to be implied.\newline
+\circled{2} Truncation error can be quantified for a 1-D, zero-source flux. This flux signifies the flux of neutrons moving with angle \(\hat{\Omega}_a\), but for simplicity the \(a\) subscripts on \(\psi\) and \(\mu\) are not retained throughout this problem, but are left to be implied.\newline
 
 \textbf{(a)}: The equation to be solved analytically is:
 
@@ -262,9 +262,60 @@ Rearranging, and inserting the definition for \(h\):
 \Delta_i>\frac{2|\mu|}{\Sigma_t}
 \end{equation}
 
-From a cost perspective, the coarser the mesh, the better, since then the simulation will not be overly-limited by the mesh requirements. The conditions for which the mesh refinement will cause the most complications (i.e. produce negative fluxes) is for small \(|\mu|\) or large \(\Sigma_t\). In order to avoid negative fluxes, we require \(\Delta_i<\frac{2|\mu|}{\Sigma_t}\). 
+From a cost perspective, the coarser the mesh, the better, since then the simulation will not be overly-limited by the mesh requirements. The conditions for which the mesh refinement will cause the most complications (i.e. produce negative fluxes) is for small \(|\mu|\) or large \(\Sigma_t\). In order to avoid negative fluxes, we require \(\Delta_i<\frac{2|\mu|}{\Sigma_t}\).\newline 
 
-\circled{3}\newline
+\circled{3} For this problem, the boundary conditions are:
+
+\begin{equation}
+\begin{aligned}
+\psi(0)=0 \text{ for } \mu>0\\
+\psi(2) \text{ for } \mu>0 = \psi(2) \text{ for } \mu<0\\
+\end{aligned}
+\end{equation}
+
+Due to the reflecting boundary conditions present at \(x=2\), sweeps in both the positive and negative \(\mu\) directions are needed. The numerical algorithm is:
+
+\begin{enumerate}
+\item Begin at \(x=0\) with the boundary condition \(\psi_{i-1/2}=0\). 
+\item Compute the cell-centered flux using:
+
+\begin{equation}
+\psi_{i}=\frac{S_{i}+\frac{2}{1+\alpha}\left(\frac{|\mu|}{\Delta_i}\bar{\psi}_{i-1/2}\right)}{\Sigma_{t,i}+\frac{2}{1+\alpha}\left(\frac{|\mu|}{\Delta_i}\right)}
+\end{equation}
+
+\item Compute the outgoing face flux using:
+
+\begin{equation}
+\psi_{i+1/2}=\frac{2}{1+\alpha}\psi_{ijk}-\frac{1-\alpha}{1+\alpha}\bar{\psi}_{i-1/2}
+\end{equation}
+
+\item Repeat steps 2 and 3 until reaching the very last cell. At the last cell, after performing step 3, the outgoing flux has been computed. This must be reflected to serve as the incoming flux for a sweep in the negative-\(\mu\) direction. At the last cell, set \(\psi_{i+1/2}=\psi_{i+1/2}\) to serve as the incoming face flux for a sweep in the negative-\(\mu\) direction.
+
+\item Begin the sweep in the negative-\(\mu\) direction. Compute the cell-centered flux using:
+
+\begin{equation}
+\psi_{i}=\frac{S_{i}+\frac{2}{1-\alpha}\left(\frac{|\mu|}{\Delta_i}\bar{\psi}_{i+1/2}\right)}{\Sigma_{t,i}+\frac{2}{1-\alpha}\left(\frac{|\mu|}{\Delta_i}\right)}
+\end{equation}
+
+\item Compute the outgoing face flux using:
+
+\begin{equation}
+\psi_{i-1/2}=\frac{2}{1-\alpha}\psi_{ijk}-\frac{1+\alpha}{1-\alpha}\bar{\psi}_{i+1/2}
+\end{equation}
+
+\item Repeat steps 5 and 6 for all cells until reaching the very first cell again. At this point, if there is no source (fission, scattering, or external), then no further sweeps are needed, and the solution is complete.
+\end{enumerate}
+
+\textbf{(a)}: Using the numerical algorithm described above, 
+
+
+
+
+
+
+
+
+
 \circled{4} The 1-D form of the multigroup transport equation is:
 
 \begin{equation}
