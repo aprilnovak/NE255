@@ -89,7 +89,7 @@
 \setcounter{tocdepth}{4}
 \begin{document}
 
-\textbf{NE 255: HW4}3\hfill April Novak\newline
+\textbf{NE 255: HW4}\hfill April Novak\newline
 
 \circled{1} The \(S_N\) equations provide the framework to discretize the angular flux in angle, but the equations still must be discretized in space. In general, there are two different means to perform spatial discretization - cell balance methods, which preserve conservation of the solution, and finite element methods, which do not necessarily preserve conservation of the solution. In a single mesh cell, cell balance methods will provide a statement that is equivalent to conservation of neutrons, while finite element methods satisfy the governing equation in a weighted-integral sense. For simplicity, all of the spatial discretization schemes discussed here are applied to the simplified transport equation that neglects time dependence and assumes some angular discretization has already been applied to \(\psi\) such that it is independent of angle (in each of these equations):
 
@@ -471,6 +471,9 @@ This section contains all the code used for each question.
 
 \subsection{Question 3, parts (a) and (b)}
 \lstinputlisting[language=Matlab]{Q3.m}
+
+\subsection{Question 3, parts (c) and (d)}
+\lstinputlisting[language=Matlab]{Q3partCD.m}
 
 
 \end{document}
