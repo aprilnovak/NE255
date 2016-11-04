@@ -423,10 +423,16 @@ So, the numerical approach for this case is slightly different from that taken i
 Convergence is estimated for this method by looking at the norm of the difference in the scattering source between two successive iterations, since once the scattering source is constant, the method only requires one iteration to obtain the correct results. This is equivalent in practice to convergence based on when the flux is constant. Convergence is defined to occur once:
 
 \begin{equation}
-\|q^{i}-q^{i-1}\|_{L^2}\leq0.05
+\|q^{i}-q^{i-1}\|_{L^2}\leq0.01
 \end{equation}
 
-where \(i\) indicates iteration count.
+where \(i\) indicates iteration count. Based on the results from part (b), \(\alpha=0.5\) is selected, somewhat arbitrarily, since all three values of \(\alpha\) gave non-negative and relatively similar results. I wasn't sure of the problem wording on ``then choose one alpha to use with 3 angles'' (we're only given two angles?), so I just used the two angles given in the problem. Fig. \ref{fig:end} shows the scalar flux for \(\alpha=0.5\) and \(\mu=\pm0.2, \pm0.7\). Note that the same boundary conditions from part (a) were kept since no other information was given. As can be seen, the reflective boundary at the right end is obeyed, since the slope at that point is zero. Due to the external and scattering source in the domain, the flux increases towards the reflecting boundary, and decreases at the left edge due to leakage.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=16cm]{ScalarFlux_partC.jpg} % versioned
+  \caption{Cell-centered scalar flux for \(h=0.08, 0.1, 0.125, 0.2, 0.4\) and \(\alpha=0.5\) and for \(\mu=\pm0.2, \pm0.7\).}
+\end{figure}
 
 \circled{4} The 1-D form of the multigroup transport equation is:
 
