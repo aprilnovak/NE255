@@ -7,13 +7,15 @@ alpha = 0;
 mu = 0.1;
 Et = 1.0;
 Es = 0.0;
+
+
 h = 0.08;
 
 mesh = 0:h:2;
 elem_length = mesh(2);
 coordinates = 0:(elem_length / 2):2;
 
-q = 0.25 .* coordinates;
+q = 0.0 .* coordinates;
 
 if (elem_length > 2 * mu / Et)
     disp('Warning: Negative flux!')
@@ -57,12 +59,12 @@ end
 
 
 % plot the cell-centered values of angular flux
-% plot(coordinates(2:2:end), psi(2:2:end), '*', coordinates(2:2:end), psi_n(2:2:end), 'r*')
-% legend('Flux for Positive \mu', 'Flux for Negative \mu')
-% xlabel('Problem Domain', 'FontSize', fontsize)
-% ylabel('Cell-Centered Angular Flux', 'FontSize', fontsize)
-% saveas(gcf, 'AngularFluxh08', 'jpeg')
-% close all
+plot(coordinates(2:2:end), psi(2:2:end), '*', coordinates(2:2:end), psi_n(2:2:end), 'r*')
+legend('Flux for Positive \mu', 'Flux for Negative \mu')
+xlabel('Problem Domain', 'FontSize', fontsize)
+ylabel('Cell-Centered Angular Flux', 'FontSize', fontsize)
+saveas(gcf, 'AngularFluxh08', 'jpeg')
+close all
 
 
 % apply "quadrature rule" to get scalar flux
