@@ -279,6 +279,7 @@ By comparing Eq. \eqref{eq:22} with Eq. \eqref{eq:23}, it can be seen that the t
 \textbf{(e)}: From Eq. \eqref{eq:PositiveConditon}, it is clear that \(\psi_{i+1/2}\) could be negative if \(h>1\). In other words, from the definition of \(h\), the flux can be negative if:
 
 \begin{equation}
+\label{eq:NegativeCondition}
 \Delta_i>\frac{2|\mu|}{\Sigma_t}
 \end{equation}
 
@@ -332,7 +333,7 @@ Due to the reflecting boundary conditions present at \(x=2\), sweeps in both the
   \centering
   \includegraphics[width=12cm]{AngularFluxh08.jpg} % versioned
   \caption{Angular flux for positive and negative \(\mu\) for \(h=0.08\).}
-  \label{fig:real}
+  \label{fig:1}
 \end{figure}
 
 To obtain the scalar flux, the angular flux must be integrated over angle:
@@ -341,11 +342,22 @@ To obtain the scalar flux, the angular flux must be integrated over angle:
 \phi=\int_{-1}^{1}\psi(\mu)d\mu\approx\sum_{i=1}^{N}w_i\psi(\mu_i)
 \end{equation}
 
-This integration is approximated with a quadrature rule. Because there is only one value of \(|\mu|\), \(\mu_i=0.1\), and because the problem statement says to use equi-probable weights, the weights are set to \(w_i=1.0\) so that integration over \(-1\leq\mu\leq1\) gives 2 if the angular flux is not dependent on angle. Note that this is not a real quadrature set.
+This integration is approximated with a quadrature rule. Because there is only one value of \(|\mu|\), \(\mu_i=0.1\), and because the problem statement says to use equi-probable weights, the weights are set to \(w_i=1.0\) so that integration over \(-1\leq\mu\leq1\) gives 2 if the angular flux is not dependent on angle. Note that this is not a real quadrature set. With this quadrature rule, Fig. \ref{fig:20} shows the scalar flux for \(h=0.08, 0.1, 0.125, 0.2, 0.4\). 
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=16cm]{ScalarFlux.jpg} % versioned
+  \caption{Cell-centered scalar flux for \(h=0.08, 0.1, 0.125, 0.2, 0.4\).}
+  \label{fig:20}
+\end{figure}
 
+As can be seen, negative fluxes are obtained for \(h=0.4\), the largest of the mesh spacings. From Eq. \eqref{eq:NegativeCondition}, the flux can be negative for:
 
+\begin{equation}
+\Delta_i>0.2
+\end{equation}
 
+The only mesh spacing with \(\Delta_i>0.2\) is the last spacing, of \(h=0.4\). Because negative flux is observed, this shows that the predictions from question 2 are accurate in terms of the needed mesh refinement to avoid the unphysical negative flux that can result.
 
 
 \circled{4} The 1-D form of the multigroup transport equation is:
