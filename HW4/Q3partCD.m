@@ -6,6 +6,7 @@ fontsize = 16;
 
 % material data
 mu = 0.2;
+mu07 = 0.7;
 Et = 1.0;
 Es = 0.5;
 tolerance = 0.05;
@@ -36,6 +37,8 @@ for alpha = [0.0]
             % initialize
             psi = zeros(1, length(coordinates));
             psi_n = zeros(1, length(coordinates));
+            psi07 = zeros(1, length(coordinates));
+            psi_n07 = zeros(1, length(coordinates));
             phi = zeros(1, length(coordinates(2:2:end)));
 
             psi(1) = 2.0; % incoming flux boundary condition
@@ -46,25 +49,31 @@ for alpha = [0.0]
             while i <= (length(coordinates) - 2)
                 % compute cell-centered value
                 psi(i + 1) = (q(i+1) + (2 / (1 + alpha)) * (abs(mu) * psi(i) ./ elem_length)) / (Et + (2 / (1 + alpha)) * abs(mu) / elem_length);
+                psi07(i + 1) = (q(i+1) + (2 / (1 + alpha)) * (abs(mu07) * psi07(i) ./ elem_length)) / (Et + (2 / (1 + alpha)) * abs(mu07) / elem_length);
 
                 % compute out-going value
                 psi(i + 2) = (2 / (1 + alpha)) * psi(i + 1) - ((1 - alpha)/(1 + alpha)) * psi(i);
-
+                psi07(i + 2) = (2 / (1 + alpha)) * psi07(i + 1) - ((1 - alpha)/(1 + alpha)) * psi07(i);
+   
                 % move to next cell
                 i = i + 2;
             end
+            
 
             % negative sweep - store the outgoing flux to apply periodic BC
             i = length(coordinates);
             psi_n(i) = psi(end);
+            psi_n07(i) = psi07(end);
 
             while i > 2
 
                 % compute the cell-centered flux
                 psi_n(i - 1) = (q(i-1) + (2/(1 - alpha)) * (mu * psi_n(i) / elem_length)) / (Et + 2 * mu / (elem_length * (1 - alpha)));
+                psi_n07(i - 1) = (q(i-1) + (2/(1 - alpha)) * (mu07 * psi_n07(i) / elem_length)) / (Et + 2 * mu07 / (elem_length * (1 - alpha)));
 
                 % compute the outgoing face flux
                 psi_n(i - 2) = (2 / (1 - alpha)) * psi_n(i-1) - ((1+alpha)/(1-alpha)) * psi_n(i);
+                psi_n07(i - 2) = (2 / (1 - alpha)) * psi_n07(i-1) - ((1+alpha)/(1-alpha)) * psi_n07(i);
 
                 i = i - 2;
             end
@@ -83,27 +92,36 @@ for alpha = [0.0]
             %phi = psi(2:2:end) + psi_n(2:2:end); % equal weights of 1
 
             %plot_num = plot_num + 1;
-       
+            
+            phi_old = phi;
+            % compute scalar flux
+            phi = 0.5 .* (psi(2:2:end) + psi_n(2:2:end) + psi07(2:2:end) + psi_n07(2:2:end));
+            
+            
             % update the scattering source
             q_new = zeros(1, length(psi));
-            q_new = Es .* (psi + psi_n);
+            q_new = Es .* 0.5 .* (psi + psi_n + psi07 + psi_n07);
 
             % test for convergence
             norm = 0;
+            norm2 = 0;
             for u = 1:length(q_new)
-                norm = norm + (q_new(u) - q(u))^2;
+                norm = norm + (q_new(u) - q(u)).^2;
             end
             norm = sqrt(norm);
+            
+            for u = 1:length(phi)
+                norm2 = norm2 + (phi_old(u) - phi(u)).^2;
+            end
+            norm2 = sqrt(norm2);
             
             q = q_new;
             num_iterations = num_iterations + 1;
             if num_iterations >= max_iterations
                 disp('Maximum number of iterations reached!')
             end
-gi
-            % compute scalar flux
-            phi = 0.5 .* (psi(2:2:end) + psi_n(2:2:end));
-            
+
+
         end
     end
     
