@@ -330,13 +330,18 @@ Due to the reflecting boundary conditions present at \(x=2\), sweeps in both the
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=12cm]{AngularFluxh08.jpg}
+  \includegraphics[width=12cm]{AngularFluxh08.jpg} % versioned
   \caption{Angular flux for positive and negative \(\mu\) for \(h=0.08\).}
   \label{fig:real}
 \end{figure}
 
+To obtain the scalar flux, the angular flux must be integrated over angle:
 
+\begin{equation}
+\phi=\int_{-1}^{1}\psi(\mu)d\mu\approx\sum_{i=1}^{N}w_i\psi(\mu_i)
+\end{equation}
 
+This integration is approximated with a quadrature rule. Because there is only one value of \(|\mu|\), \(\mu_i=0.1\), and because the problem statement says to use equi-probable weights, the weights are set to \(w_i=1.0\) so that integration over \(-1\leq\mu\leq1\) gives 2 if the angular flux is not dependent on angle. Note that this is not a real quadrature set.
 
 
 
