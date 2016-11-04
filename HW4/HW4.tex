@@ -410,6 +410,24 @@ The impact of changing \(\alpha\) on the accuracy of the solution can be judged 
 \label{table:3}
 \end{table}
 
+\textbf{(c)}: Once a scattering source is present (\(\Sigma_s\neq0\)), this scattering source must be updated after each forward and backward sweep. From the form of the transport equation, the scattering source is:
+
+\begin{equation}
+S=\int_{-1}^{1}\Sigma_s(\mu^{'}\rightarrow\mu)\psi(\mu^{'})d\mu^{'}\approx\sum_{i=1}^N\Sigma_sw_i\psi(\mu_i)=0.5(\psi(0.2)+\psi(-0.2)+\psi(0.7)+\psi(-0.7))
+\end{equation}
+
+Because two angles are investigated for this problem, and we are told to use equal weights, \(w_i=0.5\) in order for the integral to normalize to 2 if \(\psi\) is not a function of angle. 
+
+So, the numerical approach for this case is slightly different from that taken in parts (a) and (b). For this case, in order to have an initial scattering source, an initial guess for the flux must be made (you were right, you do need an initial guess for the flux - my bad!). This initial guess is set to zero for simplicity. Then, a forward and backward sweep are performed. After each double sweep, new values for \(\psi(\pm0.2)\) and \(\psi(\pm0.7)\) are obtained in order to update the scattering source. Then, the process is repeated until reaching convergence.
+
+Convergence is estimated for this method by looking at the norm of the difference in the scattering source between two successive iterations, since once the scattering source is constant, the method only requires one iteration to obtain the correct results. This is equivalent in practice to convergence based on when the flux is constant. Convergence is defined to occur once:
+
+\begin{equation}
+\|q^{i}-q^{i-1}\|_{L^2}\leq0.05
+\end{equation}
+
+where \(i\) indicates iteration count.
+
 \circled{4} The 1-D form of the multigroup transport equation is:
 
 \begin{equation}
