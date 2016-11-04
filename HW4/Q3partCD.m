@@ -8,16 +8,16 @@ fontsize = 16;
 mu = 0.2;
 mu07 = 0.7;
 Et = 1.0;
-Es = 0.5;
+Es = 0.9;
 tolerance = 0.01;
 norm = 1; % intial arbitrary value
 num_iterations = 0;
-max_iterations = 100;
-plot_num = 5;
+max_iterations = 1000;
+plot_num = 1;
 
-for alpha = [0.5]
+for alpha = [0.0]
 
-    for h = [0.4]
+    for h = [0.08]
         
         mesh = 0:h:2;
         elem_length = mesh(2);
@@ -101,7 +101,7 @@ for alpha = [0.5]
         phi = 0.5 .* (psi(2:2:end) + psi_n(2:2:end) + psi07(2:2:end) + psi_n07(2:2:end));
         
         % plot the scalar flux
-        subplot(3, 2, plot_num)
+        %subplot(3, 2, plot_num)
         plot(coordinates(2:2:end), phi, '*')
         hold on
         grid on
@@ -111,5 +111,5 @@ for alpha = [0.5]
     end 
 end
 
-%saveas(gcf, 'ScalarFlux_partC', 'jpeg')
+saveas(gcf, 'ScalarFlux_partD', 'jpeg')
 %close all

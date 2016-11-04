@@ -432,6 +432,16 @@ where \(i\) indicates iteration count. Based on the results from part (b), \(\al
   \centering
   \includegraphics[width=16cm]{ScalarFlux_partC.jpg} % versioned
   \caption{Cell-centered scalar flux for \(h=0.08, 0.1, 0.125, 0.2, 0.4\) and \(\alpha=0.5\) and for \(\mu=\pm0.2, \pm0.7\).}
+  \label{fig:end}
+\end{figure}
+
+\textbf{(d)}: With these particular specifications, the solve never converges. When stopping the solve at 1000 iterations (much larger than the number, of order 50, required for part (c)), the following flux is obtained. This might be occurring as the scattering to total interaction approaches 1, which means that it becomes very difficult to converge with a finite flux. 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=12cm]{ScalarFlux_partD.jpg} % versioned
+  \caption{Cell-centered scalar flux for \(h=0.08\) and \(\alpha=0.0\) and for \(\mu=\pm0.2, \pm0.7\).}
+  \label{fig:end2}
 \end{figure}
 
 \circled{4} The 1-D form of the multigroup transport equation is:
