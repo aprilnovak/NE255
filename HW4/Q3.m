@@ -7,7 +7,7 @@ alpha = 0;
 mu = 0.1;
 Et = 1.0;
 Es = 0.0;
-h = 0.1;
+h = 0.08;
 
 mesh = 0:h:2;
 elem_length = mesh(2);
@@ -56,6 +56,8 @@ end
 
 % plot the cell-centered values of angular flux
 plot(coordinates(2:2:end), psi(2:2:end), '*', coordinates(2:2:end), psi_n(2:2:end), 'r*')
-%plot(coordinates(2:2:end), psi_n(2:2:end), 'r*')
+legend('Flux for Positive \mu', 'Flux for Negative \mu')
 xlabel('Problem Domain', 'FontSize', fontsize)
-ylabel('Angular Flux', 'FontSize', fontsize)
+ylabel('Cell-Centered Angular Flux', 'FontSize', fontsize)
+saveas(gcf, 'AngularFluxh08', 'jpeg')
+close all
