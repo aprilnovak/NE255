@@ -89,7 +89,7 @@
 \setcounter{tocdepth}{4}
 \begin{document}
 
-\textbf{NE 255: HW4}2, 3\hfill April Novak\newline
+\textbf{NE 255: HW4}3\hfill April Novak\newline
 
 \circled{1} The \(S_N\) equations provide the framework to discretize the angular flux in angle, but the equations still must be discretized in space. In general, there are two different means to perform spatial discretization - cell balance methods, which preserve conservation of the solution, and finite element methods, which do not necessarily preserve conservation of the solution. In a single mesh cell, cell balance methods will provide a statement that is equivalent to conservation of neutrons, while finite element methods satisfy the governing equation in a weighted-integral sense. For simplicity, all of the spatial discretization schemes discussed here are applied to the simplified transport equation that neglects time dependence and assumes some angular discretization has already been applied to \(\psi\) such that it is independent of angle (in each of these equations):
 
@@ -231,7 +231,7 @@ where \(\Delta_i\equiv x_{i+1/2}-x_{i-1/2}\). Introducing the definition \(h=\Si
 
 \begin{equation}
 \label{eq:128}
-\ln{\left(\frac{\psi_{i+1/2}}{\psi_{i-1/2}}\right)}=-2h\quad\rightarrow\quad\psi_{i+1/2}=\exp{\left(h^2\right)}\psi_{i-1/2}
+\ln{\left(\frac{\psi_{i+1/2}}{\psi_{i-1/2}}\right)}=-2h\quad\rightarrow\quad\psi_{i+1/2}=\exp{\left(-2h\right)}\psi_{i-1/2}
 \end{equation}
 
 \textbf{(c)}: To determine the numerical equivalent of Eq. \eqref{eq:128}, the diamond difference equations give \(\psi_{ijk}\) in terms of the face flux values as:
@@ -254,7 +254,27 @@ Rearranging, and inserting the definition for \(h\):
 \psi_{i+1/2}=\frac{1-h}{1+h}\psi_{i-1/2}
 \end{equation}
 
-\textbf{(d)}: 
+\textbf{(d)}: The power series of \(e^{-2h}\) is:
+
+\begin{equation}
+\label{eq:23}
+e^{-2h}\approx1+(-2h)+\frac{(-2h)^2}{2!}+\cdots=1-2h-2h^2+\cdots
+\end{equation}
+
+The coefficient in Eq. \eqref{eq:PositiveConditon} can be written as:
+
+\begin{equation}
+\frac{1-h}{1+h}=\frac{(1-h)^2}{1-h^2}=(1-h)^2\sum_{i=0}^\infty(h^2)^n\approx(1-h)^2\left(1+(h^2)+\frac{h^4}{2}+\cdots\right)
+\end{equation}
+
+Expanding the first term in the above equation fully:
+
+\begin{equation}
+\label{eq:22}
+\frac{1-h}{1+h}\approx(1-h)^2+\cdots=1-2h-h^2+\cdots
+\end{equation}
+
+By comparing Eq. \eqref{eq:22} with Eq. \eqref{eq:23}, it can be seen that the truncation error is very nearly second order, and hence the discretization is of second order. 
 
 \textbf{(e)}: From Eq. \eqref{eq:PositiveConditon}, it is clear that \(\psi_{i+1/2}\) could be negative if \(h>1\). In other words, from the definition of \(h\), the flux can be negative if:
 
