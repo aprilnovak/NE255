@@ -347,7 +347,7 @@ This integration is approximated with a quadrature rule. Because there is only o
 \begin{figure}[H]
   \centering
   \includegraphics[width=16cm]{ScalarFlux.jpg} % versioned
-  \caption{Cell-centered scalar flux for \(h=0.08, 0.1, 0.125, 0.2, 0.4\).}
+  \caption{Cell-centered scalar flux for \(h=0.08, 0.1, 0.125, 0.2, 0.4\) and \(\alpha=0\).}
   \label{fig:20}
 \end{figure}
 
@@ -357,8 +357,58 @@ As can be seen, negative fluxes are obtained for \(h=0.4\), the largest of the m
 \Delta_i>0.2
 \end{equation}
 
-The only mesh spacing with \(\Delta_i>0.2\) is the last spacing, of \(h=0.4\). Because negative flux is observed, this shows that the predictions from question 2 are accurate in terms of the needed mesh refinement to avoid the unphysical negative flux that can result.
+The only mesh spacing with \(\Delta_i>0.2\) is the last spacing, of \(h=0.4\). Because negative flux is observed, this shows that the predictions from question 2 are accurate in terms of the needed mesh refinement to avoid the unphysical negative flux that can result.\newline
 
+\textbf{(b)}: Using the same property data, part (a) is repeated for \(\alpha=-0.9, -0.5, 0.25, 0.5, 0.9\). 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=16cm]{ScalarFlux1-90.jpg} % versioned
+  \caption{Cell-centered scalar flux for \(h=0.08, 0.1, 0.125, 0.2, 0.4\) and \(\alpha=-0.9\).}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=16cm]{ScalarFlux1-50.jpg} % versioned
+  \caption{Cell-centered scalar flux for \(h=0.08, 0.1, 0.125, 0.2, 0.4\) and \(\alpha=-0.5\).}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=16cm]{ScalarFlux225.jpg} % versioned
+  \caption{Cell-centered scalar flux for \(h=0.08, 0.1, 0.125, 0.2, 0.4\) and \(\alpha=0.25\).}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=16cm]{ScalarFlux250.jpg} % versioned
+  \caption{Cell-centered scalar flux for \(h=0.08, 0.1, 0.125, 0.2, 0.4\) and \(\alpha=0.5\).}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=16cm]{ScalarFlux290.jpg} % versioned
+  \caption{Cell-centered scalar flux for \(h=0.08, 0.1, 0.125, 0.2, 0.4\) and \(\alpha=0.9\).}
+\end{figure}
+
+The impact of changing \(\alpha\) on the accuracy of the solution can be judged by comparing the results with those obtained for \(h=0.08\) and \(\alpha=0\) in Fig. \ref{fig:20} (assuming that such a fine mesh gives the correct answer). The table below summarizes the impact of changing \(\alpha\) on whether or not negative fluxes are obtained or if the solution is unphysical (for example, has oscillations, since that would not be expected to occur for a problem with no complicated source profile). From the figures, it is clear that the less positive the \(\alpha\), the more probable the occurrence of negative flux, oscillations between positive and negative flux, and an inability to capture the smooth exponential decay of the flux beginning at \(x=0\). For instance, while both \(\alpha=0.5\) and \(\alpha=0.9\) give reasonably good results, for \(h=0.4\), \(\alpha=0.5\) fails to capture the smooth decay in flux to zero, and after only one cell sets the flux to zero. On the other hand, for \(\alpha=0.9\), the flux decays with an exponential profile as expected. Hence, \(\alpha=0.9\) should be selected when using this code, at least for the specific case here with no source - it is possible that changing conditions would make the other choices of \(\alpha\) better-suited.
+
+\begin{table}[H]
+\caption{Impact on changing \(\alpha\) for the solution in terms of negative flux and physical reality. Solutions that appear to display the correct behavior are indicated as ``good.''}
+\centering
+\begin{tabular}{c c c c c c}
+\hline\hline
+\(h\) & \(\alpha=-0.9\) & \(\alpha=-0.5\) & \(\alpha=0.25\) & \(\alpha=0.5\) & \(\alpha=0.9\)\\ [0.5ex]
+\hline
+0.080 & \textbf{good}			& \textbf{good}		& \textbf{good}		& \textbf{good}			& \textbf{good}\\
+0.100 & too-sharp drop-off		& \textbf{good}		& \textbf{good}		& \textbf{good} 			& \textbf{good}\\
+0.125 & negative \(\phi\)		& too-sharp drop-off	& \textbf{good}		& \textbf{good} 			& \textbf{good}\\
+0.200 & negative \(\phi\)		& negative \(\phi\)	& \textbf{good}		& \textbf{good} 			& \textbf{good}\\
+0.400 & negative \(\phi\)		& oscillations		& negative \(\phi\)	& too-sharp drop-off		& \textbf{good}\\
+\hline
+\end{tabular}
+\label{table:3}
+\end{table}
 
 \circled{4} The 1-D form of the multigroup transport equation is:
 
