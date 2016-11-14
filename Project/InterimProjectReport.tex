@@ -124,12 +124,13 @@
 \author{April Novak}
 \maketitle
 
+\clearpage
 \section{Introduction}
 
-The creation of high-fidelity multiphysics simulation tools for nuclear engineering applications is of high priority to support the development of advanced reactors, where traditionally-used software may be no longer be sufficiently accurate to characterize new reactor operating regimes. PRONGHORN is a \gls{fe} \gls{cfd} code that is currently being developed on the \gls{moose} framework that solves the compressible Euler equations for the density, velocity, and temperature of a fluid flowing in a porous media. Porous media models are of interest for thermal-hydraulic codes because no solid is explicitly meshed - all quantities, such as temperature, are averaged over the liquid and solid phases. While any reactor can be described as a porous media, the approach is especially desirable for modeling pebble bed reactors due to the natural analog between fuel pebbles and the pebbles of sand or rocks for which porous media theory was initially developed. Pebble bed reactors require a mesh on the order of \(10^10\) elements to capture fluid boundary layers and the solid fuel, which gives a huge number of unknowns that can only be solved on the largest supercomputers. With porous media models, the number of elements needed is reduced to about \(10^6\), a number that can feasibly be solved on large desktop computers.
+The creation of high-fidelity multiphysics simulation tools for nuclear engineering applications is of high priority to support the development of advanced reactors, where traditionally-used software may be no longer be sufficiently accurate to characterize new reactor operating regimes. PRONGHORN is a \gls{fe} \gls{cfd} code that is currently being developed on the \gls{moose} framework that solves the compressible Euler equations for the density, velocity, and temperature of a fluid flowing in a porous media. Porous media models are of interest for thermal-hydraulic codes because no solid is explicitly meshed - all quantities, such as temperature, are averaged over the liquid and solid phases, reducing the number of finite elements needed from about \(10^{10}\) to \(10^6\). While any reactor can be described as a porous media, the approach is especially desirable for modeling pebble bed reactors due to the natural analog between fuel pebbles and the pebbles of sand or rocks for which porous media theory was initially developed. All symbols used are defined in the Appendix.
 
 PRONGHORN is under development to provide a thermal-hydraulics solver for advanced reactors that also easily couples to the other
-\gls{moose} codes to provide a framework under which multiphysics simulations are substantially simplified over the traditional approach of coupling two legacy codes. The majority of the physics in PRONGHORN have been encoded, but a remaining challenge is to stabilize the nonlinear equations governing fluid flow. Stability analysis of the Euler equations shows that there are nodal oscillations in density, pressure, and velocity when \(Pe=Vh\rho C_p/2k>1\), where \(V\) is the velocity, \(h\) the largest dimension associated with a finite element, \(\rho\) the density, \(C_p\) the specific heat, and \(k\) the thermal conductivity. The Peclet number \(Pe\) characterizes the importance of advection to diffusion, and for reactor applications is typically of order \(10^3-10^4\), and hence the Euler equations are highly unstable. This project applies the \gls{supg} method to stabilize the governing equations such that the Peclet number has no impact on stability, thus allowing simulation without the need for extremely fine spatial meshes. This report will discuss the governing equations, the finite element spatial discretization, and results showing the success of the implementation of the \gls{supg} stabilization in PRONGHORN. 
+\gls{moose} codes to provide a framework under which multiphysics simulations are substantially simplified over the traditional approach of coupling two legacy codes. The majority of the physics in PRONGHORN have been encoded, but a remaining challenge is to stabilize the nonlinear equations governing fluid flow. Stability analysis of the Euler equations shows that there are nodal oscillations in density, pressure, and velocity when \(Pe=Vh\rho C_p/2k>1\). The Peclet number \(Pe\) characterizes the importance of advection to diffusion, and for reactor applications is typically of order \(10^3-10^4\), and hence the Euler equations are highly unstable. This project applies the \gls{supg} method to stabilize the governing equations such that the Peclet number has no impact on stability, thus allowing simulation without the need for extremely fine spatial meshes. This report will discuss the governing equations, the finite element spatial discretization, and results showing the success of the implementation of the \gls{supg} stabilization in PRONGHORN. 
 
 \section{Governing Equations}
 
@@ -158,7 +159,7 @@ where the first equation represents conservation of mass, the second conservatio
 \end{aligned}
 \end{equation}
 
-where another equation has been included to provide the solid temperature that results in heat conduction from the fuel to the fluid. Refer to Section \ref{sec:GoverningEquations} for the full derivation of these governing equations - the derivation the Navier-Stokes equations is substantially more lengthy than the derivation of the neutron transport equation because there are three equations which require a significant number of assumptions to reduce the most general forms to workable equations.
+where another equation has been included to provide the solid temperature that results in heat conduction from the fuel to the fluid. Refer to Section \ref{sec:GoverningEquations} for the full derivation of these governing equations.
 
 \subsection{Discretized Equations}
 
@@ -175,11 +176,11 @@ PRONGHORN uses the \gls{fem} to solve the coupled set of equations listed in Eq.
 \end{aligned}
 \end{equation}
 
-where only the \(x\)-direction momentum equation is shown for conciseness. The equations can be solved on an unstructured mesh, and \gls{moose} has capabilities for any type of mesh that can be generated by a commercial meshing software, and hence is highly general.
+where only the \(x\)-direction momentum equation is shown for conciseness and momentum and energy have been introduced as separate variables. The equations can be solved on an unstructured mesh, and \gls{moose} has capabilities for any type of mesh that can be generated by a commercial meshing software, and hence is highly general.
 
 \section{Algorithms}
 
-This section discusses the method used to stabilize the governing equations in PRONGHORN. A detailed discussion of the \gls{jfnk} method used to solve the discretized equations is out of the scope of this project, and is deferred to Section \ref{sec:NumericalMethod}. Stabilization is needed for advection-dominated flows because the Galerkin method is equivalent to a central difference method, which is plagued by oscillation problems. A flow is advection-dominated when it has a high \(Re\) or \(Pe\) number. The magnitude of \(Pe\) is influenced by the mesh size due to the presence of \(h_e\) in its definition. As long as some diffusion is present, then in theory, the mesh could be refined to a point at which \(Pe<1\), but at the great cost of computational time when usually only engineering-scale results are desired. For hyperbolic systems, for which \(k=0\), then from Eq. \eqref{eq:Pe}, \(Pe=\infty\), and stabilization methods are required. A dramatic example of the need for stabilization is obtained from a solution to the continuity equation, for which advection terms are present in the governing equations. As can be seen in Fig. \ref{fig:continuity_eqn_no_stabilization}, instabilities due to the advection terms is generally characterized by nodal oscillations. 
+This section discusses the method used to stabilize the governing equations in PRONGHORN. A detailed discussion of the \gls{jfnk} method used to solve the discretized equations is out of the scope of this project, and is deferred to Section \ref{sec:NumericalMethod}. Stabilization is needed for advection-dominated flows because the Galerkin method is equivalent to a central difference method, which is plagued by oscillation problems. A flow is advection-dominated when it has a high \(Re\) or \(Pe\) number. The magnitude of \(Pe\) is influenced by the mesh size due to the presence of \(h_e\) in its definition. As long as some diffusion is present, then in theory, the mesh could be refined to a point at which \(Pe<1\), but at the great cost of computational time when usually only engineering-scale results are desired. For hyperbolic systems, for which \(k=0\), then \(Pe=\infty\), and stabilization methods are required. 
 
 \begin{figure}[H]
   \centering
@@ -188,7 +189,16 @@ This section discusses the method used to stabilize the governing equations in P
   \label{fig:continuity_eqn_no_stabilization}
 \end{figure}
 
-There are many ways to stabilize the Euler equations, but the most commonly-used method is the \gls{supg} method. The \gls{supg} method is a form of upwinding that generalizes optimal 1-D approaches to higher dimensions while not being subject to the artificial diffusion of earlier upwind methods. The \gls{supg} method essentially multiplies each term in the governing equations by \(\tau\vv{V}\), where \(\tau\) is a tuning parameter, and adds this to the original weak forms. The motivation behind this can be seen by investigating the weak form of the diffusion kernel \(\nabla^2 T\):
+A dramatic example of the need for stabilization is obtained from a solution to the continuity equation, for which advection terms are present in the governing equations. As can be seen in Fig. \ref{fig:continuity_eqn_no_stabilization}, instabilities due to the advection terms is generally characterized by nodal oscillations. 
+
+There are many ways to stabilize the Euler equations, but the most commonly-used method is the \gls{supg} method. The \gls{supg} method is a form of upwinding that generalizes optimal 1-D approaches to higher dimensions while not being subject to the artificial diffusion of earlier upwind methods. The \gls{supg} method essentially multiplies each term in the governing equations by \(\tau\vv{V}\), where \(\tau\) is a tuning parameter, and adds this to the original weak forms. In simplest terms, this adds a component to the weight function:
+
+\begin{equation}
+\label{eq:SUPGPsi}
+\psi\rightarrow\psi+\tau\vv{V}\cdot\nabla\psi
+\end{equation}
+
+The motivation behind this can be seen by investigating the weak form of the diffusion kernel \(\nabla^2 T\):
 
 \begin{equation}
 \label{eq:DiffusionWeakForm}
@@ -202,14 +212,14 @@ The weak form of the advection kernel \(\vv{V}\cdot\nabla T\) is:
 (\vv{V}\cdot\nabla T,\psi)
 \end{equation}
 
-By inserting the stabilized shape function defined in Eq. \eqref{eq:SUPGWeightFunctions2} into Eq. \eqref{eq:AdvectiveWeakForm}, the advective weak form becomes:
+By inserting the stabilized shape function \(\psi+\tau\vv{V}\cdot\nabla\psi\), the advective weak form becomes:
 
 \begin{equation}
 \label{eq:AdvectiveWeakForm2}
 (\vv{V}\cdot\nabla T,\psi)+(\tau\vv{V}\cdot(\vv{V}\cdot\nabla T),\nabla\psi)
 \end{equation}
 
-The presence of the two gradients, \(\nabla T\) and \(\nabla\psi\) in the diffusive weak form in Eq. \eqref{eq:DiffusionWeakForm} is, from a numerical standpoint, what gives the diffusion term nice numerical properties. By choosing the weight functions as in Eq. \eqref{eq:SUPGWeightFunctions2}, the \(\nabla T\nabla\psi\) term is obtained, thereby numerically adding ``nice'' properties that are very similar to the diffusion numerical properties. It is this similarity to solving a diffusion kernel that is allowed by this choice of shape functions that results in the SUPG stabilization being successful. The \gls{supg} weak forms are given in Section \ref{sec:SUPG}.
+The presence of the two gradients, \(\nabla T\) and \(\nabla\psi\) in the diffusive weak form in Eq. \eqref{eq:DiffusionWeakForm} is, from a numerical standpoint, what gives the diffusion term nice numerical properties. By choosing the weight functions as in Eq. \eqref{eq:SUPGPsi}, the \(\nabla T\nabla\psi\) term is obtained, thereby numerically adding ``nice'' properties that are very similar to the diffusion numerical properties. It is this similarity to solving a diffusion kernel that is allowed by this choice of shape functions that results in the SUPG stabilization being successful. The \gls{supg} weak forms are given in Section \ref{sec:SUPG}.
 
 \section{Plans for Completion}
 
@@ -217,12 +227,19 @@ The presence of the two gradients, \(\nabla T\) and \(\nabla\psi\) in the diffus
 
 \section{Conclusion}
 
-The completion of this project will bring PRONGHORN to the state where it is ready to begin single-physics simulation (of fluid flow and solid heat transfer), and in the future, multiphysics simulations with RATTLESNAKE and RELAP-7 will be conducted in order to investigate nuclear reactor transient response. 
+This report discussed the continuous and weak-form discretized compressible Euler equations and the theory behind \gls{supg} stabilization. The completion of this project will bring PRONGHORN to the state where it is ready to begin single-physics simulation (of fluid flow and solid heat transfer), and in the future, multiphysics simulations with RATTLESNAKE and RELAP-7 will be conducted in order to investigate nuclear reactor transient response. 
 
 \section{References}
 
+\begin{flushleft}
+[1]\quad Novak, A.J., Peterson, J.W., D. Andrs, and R.C. Martineau. ``PRONGHORN Theory Manual.'' \textit{Idaho National Laboratory}.\newline\newline
+[2]\quad A.N. Brooks. \textit{A Petrov-Galerkin finite element formulation for convection dominated flows}. PhD thesis, California Institute of Technology, 1981.\newline\newline
+[3]\quad T.P. Fries and H.G. Matthies. A Review of Petrov-Galerkin Stabilization Approaches and an Extension to Meshfree methods. Technical Report Informatikbericht-Nr. 2004-01, Technical University of Braunschweig, 2004.\newline\newline
+[4]\quad D. Gaston, C. Newman, G. Hansen, and D. Lebrun-Grandie. MOOSE: A parallel computational framework for coupled systems of nonlinear equations. \textit{Nuclear Engineering and Design}, 239(10):1768-1778, 2009.\newline\newline
+[5]\quad S. Morris. Advanced Fluid Mechanics. Technical report, University of California-Berkeley, 2016.\newline\newline
+[6]\quad Donald A. Nield and Adrian Bejan. \textit{Convection in Porous Media}. Springer, 2013.
 
-
+\end{flushleft}
 
 
 
@@ -292,11 +309,13 @@ All notation is defined in this section, along with the equation numbers in whic
 \(\lambda_e\)	& eigenvalue								& \(1\)				& ---\\
 \(\lambda\)	& second Lam\'{e} parameter					& \(Pa\cdot s\)			& Eq. \eqref{eq:Lame}\\
 \(\mu\)		& dynamic viscosity							& \(Pa\cdot s\)			& Eq. \eqref{eq:Lame}\\
+\(\vv{\eta}\)	& momentum								& \(kg/m^2\cdot s\)		& ---\\
 \(\sigma\)		& stress tensor with components \(\sigma_{ij}\)		& \(Pa\)				& Eq. \eqref{eq:StressTensorDefinition}\\
 \(\theta\)		& angle									& \(1\)				& ---\\
 \(\rho\)		& density									& \(kg/m^3\)			& ---\\
 \(\bar{\bar{\tau}}\)	& deviatoric stress tensor					& \(Pa\)				& Eq. \eqref{eq:DeviatoricStressTensor}\\
 \(\nu\)		& specific volume							& \(m^3/kg\)			& ---\\
+\(\gamma\)	& total energy per unit mass					& \(J/kg\)				& ---\\
 \end{tabular}
 
 
@@ -334,7 +353,7 @@ Two different velocities can be defined for a porous media. \(\vv{v}\) represent
 \vv{v}=\epsilon\vv{V}
 \end{equation}
 
-\subsection{The Mass Equation}
+\subsubsection{The Mass Equation}
 \label{sec:ContinuityEqnPebbleBed}
 
 Because mass is conserved, the rate of change of the mass within an arbitrary volume \(\volume(t)\) enclosing a system must be zero, because a system is defined such that its boundaries are closed to mass flow.
@@ -365,11 +384,11 @@ The porous media version of this equation simply replaces \(\rho\) by \(\epsilon
 \end{aligned}
 \end{equation}
 
-\subsection{The Momentum Equation}
+\subsubsection{The Momentum Equation}
 
 The momentum equation is derived in a similar manner as the continuity equation, except that it is in this equation that particular porous media models are implemented. After deriving the Navier-Stokes equations for porous media, these porous media models will be individually discussed.
 
-\subsubsection{The Navier-Stokes Equations}
+\subsubsubsection{The Navier-Stokes Equations}
 \label{sec:NS}
 
 The conservation of momentum equation is derived beginning from a general treatment of a balance of linear momentum for an arbitrary continuum. In order to relate the stress tensor \(\sigma_{ij}\) to the surface force experienced by the particle, the principle of local stress equilibrium is used. Applying the principle of local stress equilibrium to a generic shape in a frame with mutually orthogonal axes \(\vv{e_i}\) will show that the surface force acting on the fluid particle is a linear, homogeneous function of the component of \(\hat{n}\). The coefficient of proportionality, which is independent of the surface normal, is defined to be the stress tensor \(\sigma_{ij}\). 
@@ -573,7 +592,7 @@ where conservation of mass has been used to express the \gls{lhs} in conservativ
 
 Porous media models essentially then add an additional momentum sink in the momentum equations. These terms are described next. Some codes retain the viscous loss term \(\nabla\cdot\bar{\bar{\epsilon\tau}}\), though this term is dropped in PRONGHORN because viscous effects are negligible in reactor applications.
 
-\subsubsection{The Darcy Equation}
+\subsubsubsection{The Darcy Equation}
 \label{sec:Darcy}
 
 Darcy's law relates the Darcy velocity from Eq. \eqref{eq:DupuitForchiemer} to the pressure drop through a relationship determined experimentally by Henry Darcy during his studies of the water supply to Dijon, France. It has since been derived from the Stokes equation, a simplification of the Navier-Stokes equation for stationary, creeping, and incompressible flow. The non-constant porosity form of Darcy's law is:
@@ -585,7 +604,7 @@ Darcy's law relates the Darcy velocity from Eq. \eqref{eq:DupuitForchiemer} to t
 
 where \(\mathscr{D}\) will be referred to as the ``Darcy coefficient.'' Values for this coefficient are given in Section \ref{sec:DarcyForcheimerCoefficients}. This relationship is linear in velocity, and hence represents friction drag. 
 
-\subsubsection{The Forcheimer Equation}
+\subsubsubsection{The Forcheimer Equation}
 \label{sec:ForcheimerEquation}
 
 In the range \(1\leq Re_D\leq 10\), nonlinear drag effects begin to become significant. These nonlinear drag effects scale as the square of velocity, and hence represent form drag due to movement in a field of solid obstacles. Use of Darcy's law, a linear drag effect, gives inaccurate results at higher \(Re\) unless another term is included. The Forcheimer equation is a modification to a concept developed by Dupuit that adds a quadratic drag term to the conventional form of Darcy's law. The total drag on the fluid is taken as the sum of the viscous drag (Darcy term) and the form drag (Forcheimer term), an approach first suggest by Reynolds \cite{ergun}. While most forms assume constant porosity, the non-constant-porosity form is:
@@ -604,7 +623,7 @@ where \(\mathscr{F}\) will be referred to as the ``Forcheimer coefficient.'' Val
 \end{aligned}
 \end{equation}
 
-\subsubsection{The Momentum Equation}
+\subsubsubsection{The Momentum Equation}
 
 This section combines the discussion in Section \ref{sec:NS} with the porous media models discussed in Sections \ref{sec:Darcy} and \ref{sec:ForcheimerEquation} to give the form of the momentum equation used in PRONGHORN:
 
@@ -625,7 +644,7 @@ Finally, PRONGHORN neglects viscous shear forces, where Section \ref{sec:Scaling
 \frac{\partial(\epsilon\rho_f\vv{V})}{\partial t}+\nabla\cdot(\epsilon\rho_f\vv{V}\vv{V})+\nabla (\epsilon P)-\epsilon\rho_f\vv{g}+\mathscr{D}\mu\epsilon\vv{V}+\mathscr{F}\epsilon^2\rho_f|\vv{V}|\vv{V}=0
 \end{equation}
 
-\subsection{The Solid and Fluid Energy Equations}
+\subsubsection{The Solid and Fluid Energy Equations}
 \label{sec:EnergyEquations}
 
 Finally, an energy equation is needed because the equations of state for pressure are in terms of two variables - density and total energy. The first law of thermodynamics relates the rate of change of energy in a volume to the rate of energy and heat addition. The total energy is the sum of internal energy and kinetic energy. \(e\), the internal energy per unit mass, represents the potential energy due to bond stretching plus the mean kinetic energy of molecules when moving in a frame of reference moving with the center of mass velocity (vibratory motion). The total energy \(E\) per unit mass is the sum of this internal energy and kinetic energy of the body, per unit mass.
@@ -995,7 +1014,7 @@ x(\xi)=\sum_{i=1}^{n_{en}}X_i\phi_i(\xi)
 
 where \(X_i\) are the physical nodes and \(\phi\) the shape functions in the master element. All calculations are performed element-by-element, and after completion, are assembled into a global matrix that is then solved using the \gls{jfnk} method.
 
-\section{Numerical Method}
+\subsection{Numerical Method}
 \label{sec:NumericalMethod}
 
 The nonlinear system solved by MOOSE is stated such that each of the weighted residuals \(R(\vv{x})\) constructed under the finite element formulation equal zero. This essentially requires that the governing equations are satisfied in an averaged sense. For a single residual statement, this is represented symbolically as:
@@ -1005,7 +1024,7 @@ The nonlinear system solved by MOOSE is stated such that each of the weighted re
 R(\vv{x})=0
 \end{equation}
 
-Eq. \eqref{eq:ResidualStatement} is nothing more than a short-hand statement of any single one of the governing equations in Eq. \eqref{eq:PronghornEquations_V2}:
+Eq. \eqref{eq:ResidualStatement} is nothing more than a short-hand statement of any single one of the governing equations:
 
 \begin{equation}
 \label{eq:residuals}
@@ -1021,16 +1040,16 @@ where the subscripts \(c\), \(m\), \(s\), and \(f\) refer to the continuity, mom
 
 \begin{equation}
 \label{eq:solutionvector}
-\vv{x}=\begin{bmatrix} x_1\\
-				   y_1\\
-				   z_1\\
-				   x_2\\
-				   y_2\\
-				   z_2\\
-				   \vdots\\
-				   x_n\\
-				   y_n\\
-				   z_n\\\end{bmatrix}
+\vv{x}=\begin{bmatrix} x_1 &
+				   y_1 &
+				   z_1 &
+				   x_2 &
+				   y_2 &
+				   z_2 &
+				   \cdots &
+				   x_n &
+				   y_n &
+				   z_n\end{bmatrix}^T
 \end{equation}
 
 where the subscripts denote node numbers and the entries are actually the expansion coefficients \(C_j\) from Eq. \eqref{eq:FEExpansion} that are solved for. Hence, the information for each node in structural problems is usually held adjacent within the solution vector, and the information for other nodes held in a neighboring manner. For the thermal-hydraulics equations solved in PRONGHORN, a similar method is utilized, and all problem unknowns are held in a single column vector, organized by node. Each residual is a function of these unknowns. 
@@ -1104,10 +1123,10 @@ In MOOSE, Newton's method is implemented by:
 
 Newton's method sets the next solution guess \(\vv{x}^{k+1}\) to be the zero of the line tangent to \(R(\vv{x}^k)\). For simple roots (roots that do not also coincide with the root of a derivative of \(R\)), Newton's method converges quadratically. However, for multiple roots, Newton's method only converges linearly. These linear and quadratic convergence rates are local, however, and if the solve begins too far away from the solution, Newton's method might never converge. MOOSE capitalizes on the fact that the JFNK method only requires residual and Jacobian evaluations. This permits individual physics to be separated, and chained together in customizable manners for a high degree of specialization. 
 
-\section{SUPG Weak Forms}
+\subsection{SUPG Weak Forms}
 \label{sec:SUPG}
 
-The SUPG weak forms of the governing equations in Eq. \eqref{eq:PronghornEquations_V2} are:
+The SUPG weak forms of the governing equations are:
 
 \begin{equation}
 \label{eq:SUPGWeakForms}
