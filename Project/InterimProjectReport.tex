@@ -71,7 +71,7 @@
 % Wolverine fundamental governing equations, created as commands since they're used so frequently in the manual
 \newcommand{\massconservation}{\epsilon\frac{\partial\rho_f}{\partial t} + \nabla\cdot(\epsilon\rho_f\vv{V})=0} % Eq. \eqref{eq:ContinuityPorous1}
 \newcommand{\momentumconservation}{\epsilon\frac{\partial(\rho_f\vv{V})}{\partial t}+\nabla\cdot(\epsilon\rho_f\vv{V}\vv{V})+\nabla\cdot(\epsilon P\textbf{I})-\epsilon\rho_f\vv{g}+\mathscr{D}\mu\epsilon\vv{V}+\mathscr{F}\epsilon^2\rho_f|\vv{V}|\vv{V}=0} % Eq. \eqref{eq:MomentumPRONGHORN}
-\newcommand{\fluidenergyconservation}{\epsilon\frac{\partial (\rho_f E)}{\partial t}+\nabla\cdot(\epsilon h_f\rho_f\vv{V})-\color{red}\nabla\cdot(\epsilon k_f\nabla T)\color{black}-\epsilon\rho_f \vv{g}\cdot\vv{V}+\alpha(T_f-T_s)-q_f=0} % Eq. \eqref{EnergyBalance7}
+\newcommand{\fluidenergyconservation}{\epsilon\frac{\partial (\rho_f E)}{\partial t}+\nabla\cdot(\epsilon h_f\rho_f\vv{V})-\epsilon\rho_f \vv{g}\cdot\vv{V}+\alpha(T_f-T_s)-q_f=0} % Eq. \eqref{EnergyBalance7}
 \newcommand{\solidenergyconservation}{(1-\epsilon)\rho_sC_{p,s}\frac{\partial T_s}{\partial t}-\nabla\cdot(\kappa_s\nabla T_s)+\alpha(T_s-T_f)-q_s=0} % Eq. \eqref{eq:SolidPorous}
 
 % Wolverine fundamental governing equations, with nonlinear variables
@@ -128,14 +128,752 @@
 The creation of high-fidelity multiphysics simulation tools for nuclear engineering applications is of high priority to support the development of advanced reactors, where traditionally-used software may be no longer be sufficiently accurate to characterize new reactor operating regimes. PRONGHORN is a \gls{fe} \gls{cfd} code that is currently being developed on the \gls{moose} framework that solves the compressible Euler equations for the density, velocity, and temperature of a fluid flowing in a porous media. Porous media models are of interest for thermal-hydraulic codes because no solid is explicitly meshed - all quantities, such as temperature, are averaged over the liquid and solid phases. While any reactor can be described as a porous media, the approach is especially desirable for modeling pebble bed reactors due to the natural analog between fuel pebbles and the pebbles of sand or rocks for which porous media theory was initially developed. Pebble bed reactors require a mesh on the order of \(10^10\) elements to capture fluid boundary layers and the solid fuel, which gives a huge number of unknowns that can only be solved on the largest supercomputers. With porous media models, the number of elements needed is reduced to about \(10^6\), a number that can feasibly be solved on large desktop computers.
 
 PRONGHORN is under development to provide a thermal-hydraulics solver for advanced reactors that also easily couples to the other
-\gls{moose} codes to provide a framework under which multiphysics simulations are substantially simplified over the traditional approach of coupling two external codes. The majority of the physics in PRONGHORN have been encoded, but a remaining challenge is to stabilize the nonlinear equations governing fluid flow. Stability analysis of the Euler equations shows that there are nodal oscillations in density, pressure, and velocity when \(Pe=Vh\rho C_p/2k>1\), where \(V\) is the velocity, \(h\) the largest dimension associated with a finite element, \(\rho\) the density, \(C_p\) the specific heat, and \(k\) the thermal conductivity. For reactor applications, the Peclet number \(Pe\) characterizes the importance of advection to diffusion, and is typically of order \(10^3-10^4\), and hence the Euler equations are highly unstable. This project applies the \gls{supg} method to stabilize the governing equations such that the Peclet number has no impact on stability, thus allowing simulation without the need for extremely fine spatial meshes.
+\gls{moose} codes to provide a framework under which multiphysics simulations are substantially simplified over the traditional approach of coupling two legacy codes. The majority of the physics in PRONGHORN have been encoded, but a remaining challenge is to stabilize the nonlinear equations governing fluid flow. Stability analysis of the Euler equations shows that there are nodal oscillations in density, pressure, and velocity when \(Pe=Vh\rho C_p/2k>1\), where \(V\) is the velocity, \(h\) the largest dimension associated with a finite element, \(\rho\) the density, \(C_p\) the specific heat, and \(k\) the thermal conductivity. The Peclet number \(Pe\) characterizes the importance of advection to diffusion, and for reactor applications is typically of order \(10^3-10^4\), and hence the Euler equations are highly unstable. This project applies the \gls{supg} method to stabilize the governing equations such that the Peclet number has no impact on stability, thus allowing simulation without the need for extremely fine spatial meshes. This report will discuss the governing equations, the finite element spatial discretization, and results showing the success of the implementation of the \gls{supg} stabilization in PRONGHORN. 
 
-\section{Mathematics}
+\section{Governing Equations}
+
+This section provides the continuous and discretized governing equations solved in PRONGHORN. All fluids satisfy conservation of mass, momentum, and energy, and different variations on equations used to actually model fluid flow simply use different constitutive relationships for the stress tensor. The Navier-Stokes equations are the most commonly-used model for fluid flow, and assume a Newtonian constitutive relationship. The derivation of the Navier-Stokes equations is a very lengthy process that requires knowledge of continuum mechanics, and hence the bulk of the derivation has been given in Section \ref{sec:GoverningEquations}. Instead of repeating this lengthy derivation, this section provides a high-level overview of these equations and how the porous media forms of the Navier-Stokes equations are obtained. 
+
+\subsection{Continuous Equations}
+The equations governing fluid flow are conservation equations - namely, conservation of mass, momentum, and energy. By balancing the forces on an arbitrary continuum, and using a constitutive relationship for the stress tensor for a Newtonian fluid, the Navier-Stokes equations are:
+
+\begin{equation}
+\begin{aligned}
+\frac{\partial\rho}{\partial t} + \nabla\cdot(\rho\vv{V})=&\ 0\\
+\frac{\partial(\rho\vv{V})}{\partial t}+\nabla\cdot(\rho\vv{V}\otimes\vv{V})=&\ \rho \vv{g}-\nabla P+\nabla\cdot\left\lbrack\mu\left(\nabla \vv{V}+(\nabla \vv{V})^T\right)-\frac{2\mu}{3}\nabla\cdot\vv{V}\textbf{I}\right\rbrack\\
+\frac{\partial (\rho E)}{\partial t}+\nabla\cdot((\rho E+P)\vv{V})=&\ \rho \vv{g}\cdot\vv{V}+\nabla\cdot\left\{\left\lbrack\mu\left(\nabla \vv{V}+(\nabla \vv{V})^T\right)-\frac{2\mu}{3}\nabla\cdot\vv{V}\textbf{I}\right\rbrack\vv{V}\right\}-\nabla\cdot\vv{q}\\
+\end{aligned}
+\end{equation}
+
+where the first equation represents conservation of mass, the second conservation of momentum, and the third conservation of energy (all for the fluid). Because viscous effects are negligible in reactor applications, terms representing viscous forces can be neglected, giving a form of the Navier-Stokes equations called the Euler equations. To then obtain the porous-media form of the Euler equations, each occurrence of density is replaced by \(\epsilon\rho\), where \(\epsilon\) is the porosity, which denotes the fraction of the volume that is fluid. Then, special models are added to the momentum equation to account for friction and form drag in a porous media. The friction drag is related to the friction the fluid feels as it moves around pebbles, while form drag captures the ``drafting'' effect a fluid particle feels as it moves past a solid obstacle in a flow field. With these additions, the porous-media forms of the Euler equations become:
+
+\begin{equation}
+\label{eq:PRONGHORNeqs}
+\begin{aligned}
+\massconservation\\
+\momentumconservation\\
+\fluidenergyconservation\\
+\solidenergyconservation\\
+\end{aligned}
+\end{equation}
+
+where another equation has been included to provide the solid temperature that results in heat conduction from the fuel to the fluid. Refer to Section \ref{sec:GoverningEquations} for the full derivation of these governing equations - the derivation the Navier-Stokes equations is substantially more lengthy than the derivation of the neutron transport equation because there are three equations which require a significant number of assumptions to reduce the most general forms to workable equations.
+
+\subsection{Discretized Equations}
+
+PRONGHORN uses the \gls{fem} to solve the coupled set of equations listed in Eq. \eqref{eq:PRONGHORNeqs}. This report does not permit a lengthy discussion of the \gls{fem}, and instead the basis of this numerical method is deferred to Section \ref{sec:FEM}. The \gls{fem} is a weight residual method that requires the use of a weak form of the governing equations. This weak form is obtained by multiplying each term in the equation by an arbitrary weight function \(\psi\) and integrating over all space, and applying the divergence rule when possible. Using the convention that angled brackets denote an inner product over area (with a unit normal implicitly included) and curved brackets an inner product over volume, the weak form of the governing equations is:
+
+\begin{equation}
+\label{eq:PronghornEquations_V2WeakForm}
+\begin{aligned}
+\left(\epsilon \frac{\partial\rho_f}{\partial t},\psi\right)-\left(\epsilon\rho_f\vv{V},\nabla\psi\right)+< \epsilon\rho_f\vv{V},\psi>=0\\
+\left(\epsilon\frac{\partial\eta_x}{\partial t},\psi\right)-\left(\epsilon\eta_x\vv{V},\nabla\psi\right)+<\epsilon\eta_x\vv{V} + \epsilon P\vv{I},\psi>-\left(\epsilon P\vv{I},\nabla\psi\right)+\hspace{1cm}\\
+\left(\mathscr{D}\mu\epsilon V_x,\psi\right)+\left(\mathscr{F}\epsilon^2\rho_f|\vv{V}|V_x,\psi\right)-\left(\epsilon\rho_f g_x,\psi\right)=0\\
+\left((1-\epsilon)\frac{\partial(\rho_s C_{p_s}T_s)}{\partial t},\psi\right)+\left(\kappa_s\nabla T_s,\nabla\psi\right)-<\kappa_s\nabla T_s,\psi>+\left(\alpha(T_s-T_f),\psi\right)-\left(q_s,\psi\right)=0\\
+\left(\epsilon\frac{\partial\gamma_f}{\partial t},\psi\right)-\left(\epsilon h_f\vv{\eta},\nabla\psi\right)+<\epsilon h_f\vv{\eta},\psi>-\left(\epsilon\vv{g}\cdot\vv{\eta},\psi\right)+\left(\alpha(T_f-T_s),\psi\right)-\left(q_f,\psi\right)=0\\
+\end{aligned}
+\end{equation}
+
+where only the \(x\)-direction momentum equation is shown for conciseness. The equations can be solved on an unstructured mesh, and \gls{moose} has capabilities for any type of mesh that can be generated by a commercial meshing software, and hence is highly general.
+
+
+
 \section{Algorithms}
 \section{Code Use}
 \section{Test Problems and Results}
 \section{Conclusion}
 \section{References}
+
+
+
+
+
+
+
+
+
+
+
+
+\clearpage
 \section{Appendix}
+\subsection{Governing Equations}
+\label{sec:GoverningEquations}
+
+This section presents the full derivation of the conservation of mass, momentum, and energy equations for a porous media, and explains the friction and form drag terms to account for porous media effects. Porous media are characterized by the porosity \(\epsilon\), or the ratio of void volume to total volume.
+
+\begin{equation}
+\label{eq:PorosityDefinition}
+\epsilon\equiv\frac{\textrm{(connected) void volume}}{\textrm{total volume}}
+\end{equation}
+
+Two different velocities can be defined for a porous media. \(\vv{v}\) represents the fluid velocity averaged over the entire medium (over solid and fluid). This velocity is often referred to as the Darcy velocity. The alternative definition, \(\vv{V}\), represents the fluid velocity averaged over only the fluid, and is referred to as the intrinsic phase velocity. These two representations of velocity are related to each other by the Dupuit-Forchiemer relationship:
+
+\begin{equation}
+\label{eq:DupuitForchiemer}
+\vv{v}=\epsilon\vv{V}
+\end{equation}
+
+\subsection{The Mass Equation}
+\label{sec:ContinuityEqnPebbleBed}
+
+Because mass is conserved, the rate of change of the mass within an arbitrary volume \(\volume(t)\) enclosing a system must be zero, because a system is defined such that its boundaries are closed to mass flow.
+
+\begin{equation}
+\frac{d}{dt} \int_{\volume(t)}^{}\rho d\volume=0
+\end{equation}
+
+where \(d(.)/dt\) represents the material derivative of \((.)\). By the Reynolds Transport Theorem, the system perspective is converted to a control volume perspective:
+
+\begin{equation}
+\int_{\volume(t)}^{}\frac{\partial\rho}{\partial t}d\volume+\oint_{S(t)}^{}\rho\vv{V}\cdot\hat{n}dS=0
+\end{equation}
+
+where \(S\) is the surface bounding the system. By applying the divergence rule, the surface integral is converted to a volume integral. Then, because the selection of \(\volume(t)\) is arbitrary, the integrand must be zero, giving the conservation of mass equation, often referred to as the ``continuity equation:''
+
+\begin{equation}
+\label{eq:ContinuityNonPorous}
+\frac{\partial\rho}{\partial t} + \nabla\cdot(\rho\vv{V})=0
+\end{equation}
+
+The porous media version of this equation simply replaces \(\rho\) by \(\epsilon\rho_f\) to reflect the portion of the volume that is fluid:.
+
+\begin{equation}
+\label{eq:ContinuityPorous1}
+\begin{aligned}
+\frac{\partial (\epsilon\rho_f)}{\partial t} + \nabla\cdot(\epsilon\rho_f\vv{V})=0\\
+\end{aligned}
+\end{equation}
+
+\subsection{The Momentum Equation}
+
+The momentum equation is derived in a similar manner as the continuity equation, except that it is in this equation that particular porous media models are implemented. After deriving the Navier-Stokes equations for porous media, these porous media models will be individually discussed.
+
+\subsubsection{The Navier-Stokes Equations}
+\label{sec:NS}
+
+The conservation of momentum equation is derived beginning from a general treatment of a balance of linear momentum for an arbitrary continuum. In order to relate the stress tensor \(\sigma_{ij}\) to the surface force experienced by the particle, the principle of local stress equilibrium is used. Applying the principle of local stress equilibrium to a generic shape in a frame with mutually orthogonal axes \(\vv{e_i}\) will show that the surface force acting on the fluid particle is a linear, homogeneous function of the component of \(\hat{n}\). The coefficient of proportionality, which is independent of the surface normal, is defined to be the stress tensor \(\sigma_{ij}\). 
+
+\begin{equation}
+\label{eq:StressTensorDefinition}
+f_i(\hat{n})=f_i(\vv{e_j})n_j\rightarrow\sigma_{ij}n_j
+\end{equation}
+
+A general balance of linear momentum for a system is:
+
+\begin{equation}
+\underbrace{\frac{d}{dt}\int_{\volume(t)}^{}\rho V_id\volume}_{\text{rate of change of momentum}}=\underbrace{\int_{\volume(t)}^{}\rho g_id\volume}_{\text{body force}}+\underbrace{\oint_{S(t)}^{}\sigma_{ij}n_jdS}_{\text{surface force}}
+\end{equation}
+
+where the surface integral is converted to a volume integral using the divergence theorem:
+
+\begin{equation}
+\label{eq:CauchyMomentumBalance}
+\frac{d}{dt}\int_{\volume(t)}^{}\rho V_id\volume=\int_{\volume(t)}^{}\rho g_id\volume+\int_{\volume(t)}^{}\frac{\partial\sigma_{ij}}{\partial x_j}d\volume
+\end{equation}
+
+It is assumed that the only body force acting on the fluid is gravity. In order to differentiate under the integral sign, the continuum is assumed to satisfy conservation of mass such that the time rate of change of \(\rho V_i\) does not change. Then, the time differentiation can be moved inside the summation to act only on the velocity. Extending this argument to the continuous form in Eq. \eqref{eq:CauchyMomentumBalance}, and since Eq. \eqref{eq:CauchyMomentumBalance} must apply for any arbitrary volume:
+
+\begin{equation}
+\label{eq:CauchyMomentum}
+\rho\frac{dV_i}{dt}=\rho g_i+\frac{\partial\sigma_{ij}}{\partial x_j}\\
+\end{equation}
+
+Eq. \eqref{eq:CauchyMomentum}, often called the Cauchy equation, represents a balance of linear momentum for any mass-conserving continuum. In its most general form the stress tensor contains nine unknowns (\(i=1, 2, 3\) and \(j=1, 2, 3\)). The stress tensor is symmetric if the only moments on the fluid particle are due to the resultant body and surface forces. It is rare that a fluid experience torques in excess of the body and surface force torques, and symmetry of the stress tensor is assumed in virtually all fluids codes, reducing nine unknowns to six. 
+
+The Navier-Stokes equations are derived by inserting a constitutive relation for \(\sigma_{ij}\) into the balance of momentum in Eq. \eqref{eq:CauchyMomentum}. To understand this constitutive relation, the kinematics of deformation must be understood. The motion of a material element can be decomposed into three contributions:
+
+\begin{enumerate}
+\item Translation - due to the magnitude of the velocity \(\vv{V}\)
+\item Rigid rotation (with angular velocity \(\omega/2\)) - due to the antisymmetric component \(\xi_{ij}\)
+\item Stretching (with rate \(\lambda_e\)) along the eigenvectors of symmetric component \(e_{ij}\)
+\end{enumerate}
+
+To understand the form of each of these components, consider two points in a fluid that are sufficiently close such that their separation \(\vv{\delta r}\) can be approximated by a one-term Taylor series:
+
+\begin{equation}
+\label{eq:FirstOrderTS}
+V_i(\vv{r}+\vv{\delta r}, t)-V_i(\vv{r},t)=\frac{d}{dt}(\delta r_i)\approx\delta r_j\frac{\partial V_i}{\partial x_j}
+\end{equation}
+
+Any tensor can be written as the sum of symmetric and antisymmetric parts:
+
+\begin{equation}
+\label{eq:VelocitySymmetricAntisymmetric}
+\frac{\partial V_i}{\partial x_j}=\underbrace{\frac{1}{2}\left(\frac{\partial V_i}{\partial x_j}+\frac{\partial V_j}{\partial x_i}\right)}_\text{symmetric}+\underbrace{\frac{1}{2}\left(\frac{\partial V_i}{\partial x_j}-\frac{\partial V_j}{\partial x_i}\right)}_\text{antisymmetric}=e_{ij}+\xi_{ij}
+\end{equation}
+
+where the symmetric and antisymmetric components are denoted as:
+
+\begin{equation}
+\label{eq:SymmetricAsymmetric}
+e_{ij}=\frac{1}{2}\left(\frac{\partial V_i}{\partial x_j}+\frac{\partial V_j}{\partial x_i}\right)\quad\quad\xi_{ij}=\frac{1}{2}\left(\frac{\partial V_i}{\partial x_j}-\frac{\partial V_j}{\partial x_i}\right)
+\end{equation}
+
+\(e_{ij}\) is referred to as the ``deformation tensor.'' To understand the antisymmetric component \(\xi_{ij}\), assume for the time being that \(e_{ij}=0\). Combining Eqs. \eqref{eq:FirstOrderTS} and \eqref{eq:SymmetricAsymmetric} and taking the scalar product with \(\delta r_i\):
+
+\begin{equation}
+\delta r_i\frac{d}{dt}(\delta r_i)=\delta r_i\delta r_j\xi_{ij}
+\end{equation}
+
+\(\delta r_i\delta r_j\) is symmetric, while \(\xi_{ij}\) is antisymmetric. The product of any symmetric tensor with an asymmetric tensor must be zero, so the above reduces to:
+
+\begin{equation}
+\delta r_i\frac{d}{dt}(\delta r_i)\rightarrow\frac{1}{2}\frac{d}{dt}\left(\delta r_i\right)^2=0
+\end{equation}
+
+Hence, if only the antisymmetric component \(\xi_{ij}\) is present, because \(\delta r_i\) is constant in time, \(\xi_{ij}\) cannot represent stretching, since stretching would occur along \(\delta r_i\). Because translation is accounted for simply by the magnitude of the velocity \(V_i\), \(\xi_{ij}\) therefore represents a rigid rotation. \(\xi_{ij}\) does not deform the fluid, within the limit of applicability of the one term Taylor series assumed in Eq. \eqref{eq:FirstOrderTS}, but rather produces a rigid rotation. To interpret the symmetric component of \(\partial v_i/\partial x_j\), \(e_{ij}\), consider for the time being that \(\xi_{ij}=0\). Then, Eq. \eqref{eq:FirstOrderTS} reduces to:
+
+\begin{equation}
+\label{eq:Eigenvalue}
+\frac{d}{dt}(\delta r_i)\approx\delta r_je_{ij}
+\end{equation}
+
+\(e_{ij}\) satisfies the eigenvalue problem:
+
+\begin{equation}
+\label{eq:Eigenvalue2}
+\begin{aligned}
+e_{ij}\delta r_j=\lambda_e \delta r_i\\
+\left(e_{ij}\delta r_j-\lambda_e\delta r_i\delta_{ij}\right)=0\\
+\end{aligned}
+\end{equation}
+
+where \(\lambda_e\) are the eigenvalues and \(\delta r_j\) are the eigenvectors. Because \(e_{ij}\) is a 3 x 3 symmetric, real, matrix, there will be three unique, real, and mutually orthogonal eigenvectors \(\delta r_j\). These eigenvectors are referred to as the ``principal axes'' of \(e_{ij}\), and the eigenvalues as the ``principal strain rates'' of \(e_{ij}\). Inserting Eq. \eqref{eq:Eigenvalue2} into Eq. \eqref{eq:Eigenvalue}, an interpretation of \(e_{ij}\) results for line elements that are parallel to one of the principal axes:
+
+\begin{equation}
+\label{eq:Eigenvalue3}
+\frac{d}{dt}(\delta r_i)=\lambda_e \delta r_i
+\end{equation}
+
+Because the relative velocity is along \(\delta r_i\), \(e_{ij}\) represents stretching with rate \(\lambda_e\) in three mutually orthogonal directions (along the eigenvectors of \(e_{ij}\). If a line element is parallel to one of these principal axes, then \(e_{ij}\) only contributes stretching. However, a line not parallel to one of the principal axes is both stretched and rotated due to \(e_{ij}\), since the components of the line element stretch at different rates. From Eq. \eqref{eq:SymmetricAsymmetric}, the trace of the deformation tensor is equal to the divergence of the velocity.
+
+\begin{equation}
+\textrm{Tr}(e_{ij})=\nabla\cdot\vv{V}
+\end{equation}
+
+As long as the volume is sufficiently small such that the divergence of the velocity can be taken as constant over the volume, the divergence of the velocity represents the fractional rate of increase of an infinitesimal volume.
+
+\begin{equation}
+\label{eq:SignificanceofDivergence}
+\frac{1}{\volume}\frac{d\volume}{dt}\approx\nabla\cdot\vv{V}
+\end{equation}
+
+Knowing that \(\nabla\cdot\vv{V}\) represents a volume expansion, the motion at a point described by Eq. \eqref{eq:FirstOrderTS} can be separated into an isotropic radial expansion, a volume preserving motion obtained by subtracting off the volume change, and a rigid rotation. A factor of \(1/3\) appears to cancel the 3 that results from summation over \(i\) and \(j\) in \(\delta_{ij}\).
+
+\begin{equation}
+\label{eq:MotionAtaPoint}
+\begin{aligned}
+V_i(\vv{r}+\vv{\delta r}, t)-V_i(\vv{r},t)=&\ \delta r_j\frac{\partial V_i}{\partial x_j}\hspace{6.38cm}\\
+=&\ \delta r_je_{ij}-\frac{1}{2}\delta r_j\varepsilon_{ijk}\omega_k\hspace{4.47cm}\\
+=&\ \underbrace{\frac{1}{3}\delta r_i\nabla\cdot\vv{V}}_\text{radial expansion}+\underbrace{\delta r_j\left(e_{ij}-\frac{1}{3}\nabla\cdot\vv{V}\delta_{ij}\right)}_\text{constant-volume motion}-\underbrace{\frac{1}{2}\delta r_j\varepsilon_{ijk}\omega_k}_\text{rigid rotation}\\
+\end{aligned}
+\end{equation}
+
+To formulate the Navier-Stokes equations requires a constitutive relation for the stress tensor \(\sigma_{ij}\). The Navier-Stokes equations assume a Newtonian fluid constitutive relationship. A fluid is defined to be Newtonian if \(\sigma_{ij}\) is a linear, isotropic, function of the deformation tensor \(e_{ij}\). Because \(\xi_{ij}\) causes a rigid rotation, but no deformation, there is no contribution in \(\sigma_{ij}\) due to \(\xi_{ij}\). For simple fluids, the Newtonian approximation is an excellent assumption over a wide range of strain rates, but for molecules consisting of long chains of atoms, or with suspended solid particles, shearing the fluid breaks down an internal structure that can align the molecules such that the shear stress is not a linear function of the velocity gradient. For example, paint on a brush has high enough viscosity to not drip off the paint brush, but once sheared on a wall, viscous forces decrease such that it can be easily applied. The constitutive relationship for a Newtonian fluid is, in its most general form:
+
+\begin{equation}
+\label{eq:Newtonian1}
+\sigma_{ij}=-P\delta_{ij}+c_{ijkl}e_{kl}
+\end{equation}
+
+where \(P\) is the thermodynamic pressure determined from an equation of state and \(c_{ijkl}\) is a fourth-order tensor. The first term on the \gls{rhs} reflects shear stresses due to pressure forces, a requirement to match hydrostatic observations. \(c_{ijkl}\) has 81 components that in general depend on pressure and temperature. In order to reduce 81 components to two unique parameters, the isotropic assumption is used. If the axes of a rectangular prism of fluid are aligned with the eigenvectors of \(e_{ij}\), then from the discussion surrounding Eq. \eqref{eq:Eigenvalue3}, the fluid element will not rotate, but will experience a stretching along the eigenvectors of \(e_{ij}\). For an isotropic fluid, the stresses on the faces of that prism should be purely normal - if this were not so, then the fluid would have a preferred direction of deformation, a characteristic that is anisotropic. In order to show that selecting axes along the principal axes of \(e_{ij}\) for an isotropic fluid produces a diagonal \(e_{ij}\), it must be required that when the principal axes of \(\sigma_{ij}\) coincide with the principal axes of \(e_{ij}\), \(\sigma_{ij}\) is diagonal (no shear stresses). 
+
+This requirement gives \(c_{12kl}=0\) for all \(k\) and \(l\). Physically, this means that the same stress rate in different coordinate frames does not give rise to different shear stresses. This reduces the 81 components of \(c_{ijkl}\) to nine. Isotropy also requires that \(c_{1122}=c_{1133}\), since rotation of axes by 90\degree\ should not change the response in the fluid. \(\sigma_{11}\) then becomes:
+
+\begin{equation}
+\label{eq:StressesNewtonian}
+\begin{aligned}
+\sigma_{11}=-P+c_{1111}e_{11}+c_{1122}(e_{22}+e_{33})\\
+\sigma_{11}=-P+(c_{1111}-c_{1122})e_{11}+c_{1122}(e_{11}+e_{22}+e_{33})\\
+\end{aligned}
+\end{equation}
+
+The dynamic viscosity \(\mu\) and the parameter \(\lambda\) are material-specific parameters defined as:
+
+\begin{equation}
+\begin{aligned}
+\label{eq:Lame}
+2\mu=c_{1111}-c_{1122}\\
+\lambda=c_{1122}\\
+\end{aligned}
+\end{equation}
+
+Expanding Eq. \eqref{eq:StressesNewtonian} to axes with arbitrary orientation, the constitutive relationship for a Newtonian fluid is:
+
+\begin{equation}
+\label{eq:NewtonianConstitutive1}
+\sigma_{ij}=-P\delta_{ij}+2\mu e_{ij}+\lambda\nabla\cdot\vv{V}\delta_{ij}
+\end{equation}
+
+Interpreting the significance of each of these terms is difficult unless Eq. \eqref{eq:NewtonianConstitutive1} is reformulated in a manner similar to Eq. \eqref{eq:MotionAtaPoint} by subtracting out the component associated with a volume change:
+
+\begin{equation}
+\label{eq:NewtonianConstitutive2}
+\sigma_{ij}=-P\delta_{ij}+\underbrace{2\mu\left(e_{ij}-\frac{1}{3}\nabla\cdot\vv{V}\delta_{ij}\right)}_\text{deviatoric stress tensor}+\underbrace{\left(\lambda+\frac{2\mu}{3}\right)\nabla\cdot\vv{V}\delta_{ij}}_\text{volume dissipative term}
+\end{equation}
+
+where the bulk, or volume, viscosity \(\kappa\) can be introduced:
+
+\begin{equation}
+\label{eq:BulkViscosity}
+\kappa=\lambda+\frac{2\mu}{3}
+\end{equation}
+
+The deviatoric stress term represents volume-preserving deformation. The dissipative term, which represents viscous dissipation effects due to volume changes, is only observed if \(\nabla\cdot\vv{V}\neq 0\). This term is often negligible, unless \(\nabla\cdot\vv{V}\) changes slowly over a long period of time (attenuation) or if \(\nabla\cdot\vv{V}\) is large, such as in shock waves. However, in situations with nonzero \(\nabla\cdot\vv{V}\), the physics are often so different that an entirely different constitutive equation should be used. Substituting Eq. \eqref{eq:NewtonianConstitutive2} into Eq. \eqref{eq:CauchyMomentum} equation gives the Navier-Stokes equations, where Eq. \eqref{eq:SymmetricAsymmetric} is used to insert the definition of \(e_{ij}\) and Eq. \eqref{eq:BulkViscosity} for the definition of \(\kappa\):
+
+\begin{equation}
+\label{eq:NSFullForm}
+\begin{aligned}
+\rho\frac{dV_i}{dt}=\rho g_i+\frac{\partial}{\partial x_j}\left\{-P\delta_{ij}+2\mu\left\lbrack\frac{1}{2}\left(\frac{\partial V_i}{\partial x_j}+\frac{\partial V_j}{\partial x_i}\right)-\frac{1}{3}\nabla\cdot\vv{V}\delta_{ij}\right\rbrack+\kappa\nabla\cdot\vv{V}\delta_{ij}\right\}\\
+\rho\frac{dV_i}{dt}=\rho g_i-\nabla P+\nabla\cdot\left\lbrack\mu\left(\nabla V_i+(\nabla V_i)^T\right)-\frac{2\mu}{3}\nabla\cdot\vv{V}\textbf{I}\right\rbrack+\nabla\cdot\left(\kappa\nabla\cdot\vv{V}\right)\\
+\end{aligned}
+\end{equation}
+
+The deviatoric stress tensor introduced in Eq. \eqref{eq:NewtonianConstitutive2} is:
+
+\begin{equation}
+\label{eq:DeviatoricStressTensor}
+\bar{\bar{\tau}}\equiv2\mu\left(e_{ij}-\frac{1}{3}\nabla\cdot\vv{V}\delta_{ij}\right)=\mu\left(\nabla V_i+(\nabla V_i)^T\right)-\frac{2\mu}{3}\nabla\cdot\vv{V}\textbf{I}
+\end{equation}
+
+Using this notation, and neglecting the volume dissipative effect captured by \(\kappa\), the non-porous form of the Navier-Stokes equations used in PRONGHORN is:
+
+\begin{equation}
+\label{eq:NavierStokesNonPorous}
+\frac{\partial(\rho\vv{V})}{\partial t}+\nabla\cdot(\rho\vv{V}\vv{V})=-\nabla P+\nabla\cdot\bar{\bar\tau}+\rho\vv{g}
+\end{equation}
+
+where conservation of mass has been used to express the \gls{lhs} in conservative form. The volume dissipative term with the \(\kappa\) coefficient is commonly neglected by setting \(\lambda=-2\mu/3\) (\cite{batchelor}, page 144). From here forward, \(\kappa\) is set to zero in the momentum equation based on the argument that \(\lambda=-2\mu/3\). The porous-media form of Eq. \eqref{eq:NavierStokesNonPorous} is obtained by replacing \(\rho\) by \(\epsilon\rho_f\) to reflect the fraction of medium that is fluid. In addition, the viscous stress is also scaled by \(\epsilon\) to reflect the fraction of the medium that is subject to viscous forces. This means that \(\nabla\cdot\tau\rightarrow\nabla\cdot(\epsilon\tau)\), which when expanded in terms of pressure and the deviatoric stress, translates to \(-\nabla(\epsilon P)+\nabla\cdot(\epsilon\bar{\bar{\tau}})\) \cite{thermalpedia}. 
+
+\begin{equation}
+\label{eq:NavierStokesPorous}
+\frac{\partial(\epsilon\rho_f\vv{V})}{\partial t}+\nabla\cdot(\epsilon\rho_f\vv{V}\vv{V})+\nabla (\epsilon P)-\nabla\cdot(\epsilon\bar{\bar\tau})-\epsilon\rho_f\vv{g}=0
+\end{equation}
+
+Porous media models essentially then add an additional momentum sink in the momentum equations. These terms are described next. Some codes retain the viscous loss term \(\nabla\cdot\bar{\bar{\epsilon\tau}}\), though this term is dropped in PRONGHORN because viscous effects are negligible in reactor applications.
+
+\subsubsection{The Darcy Equation}
+\label{sec:Darcy}
+
+Darcy's law relates the Darcy velocity from Eq. \eqref{eq:DupuitForchiemer} to the pressure drop through a relationship determined experimentally by Henry Darcy during his studies of the water supply to Dijon, France. It has since been derived from the Stokes equation, a simplification of the Navier-Stokes equation for stationary, creeping, and incompressible flow. The non-constant porosity form of Darcy's law is:
+
+\begin{equation}
+\label{eq:DarcysLaw_NonconstantPorosity2}
+\nabla(\epsilon P)=-\mathscr{D}\mu\vv{v}
+\end{equation}
+
+where \(\mathscr{D}\) will be referred to as the ``Darcy coefficient.'' Values for this coefficient are given in Section \ref{sec:DarcyForcheimerCoefficients}. This relationship is linear in velocity, and hence represents friction drag. 
+
+\subsubsection{The Forcheimer Equation}
+\label{sec:ForcheimerEquation}
+
+In the range \(1\leq Re_D\leq 10\), nonlinear drag effects begin to become significant. These nonlinear drag effects scale as the square of velocity, and hence represent form drag due to movement in a field of solid obstacles. Use of Darcy's law, a linear drag effect, gives inaccurate results at higher \(Re\) unless another term is included. The Forcheimer equation is a modification to a concept developed by Dupuit that adds a quadratic drag term to the conventional form of Darcy's law. The total drag on the fluid is taken as the sum of the viscous drag (Darcy term) and the form drag (Forcheimer term), an approach first suggest by Reynolds \cite{ergun}. While most forms assume constant porosity, the non-constant-porosity form is:
+
+\begin{equation}
+\label{eq:GeneralForcheimer}
+\nabla (\epsilon P)=-\mathscr{D}\mu\vv{v}-\mathscr{F}\rho_f|\vv{v}|\vv{v}
+\end{equation}
+
+where \(\mathscr{F}\) will be referred to as the ``Forcheimer coefficient.'' Values for the Forcheimer and Darcy coefficients are provided by KTA empirically as:
+
+\begin{equation}
+\begin{aligned}
+\mathscr{D}_{KTA}=\frac{160(1-\epsilon)^2}{d_{\textrm{pebble}}^2\epsilon^2}\\
+\mathscr{F}_{KTA}=3\left(\frac{1-\epsilon}{Re}\right)^{0.1}\frac{(1-\epsilon)}{d_{\textrm{pebble}}\epsilon^2}\\
+\end{aligned}
+\end{equation}
+
+\subsubsection{The Momentum Equation}
+
+This section combines the discussion in Section \ref{sec:NS} with the porous media models discussed in Sections \ref{sec:Darcy} and \ref{sec:ForcheimerEquation} to give the form of the momentum equation used in PRONGHORN:
+
+\begin{equation}
+\frac{\partial(\epsilon\rho_f\vv{V})}{\partial t}+\nabla\cdot(\epsilon\rho_f\vv{V}\vv{V})+\nabla (\epsilon P)-\nabla\cdot(\epsilon\bar{\bar\tau})-\epsilon\rho_f\vv{g}+\mathscr{D}\mu\vv{v}+\mathscr{F}\rho_f|\vv{v}|\vv{v}=0
+\end{equation}
+
+Transforming all \(\vv{v}\) to \(\vv{V}\) using Eq. \eqref{eq:DupuitForchiemer}:
+
+\begin{equation}
+\frac{\partial(\epsilon\rho_f\vv{V})}{\partial t}+\nabla\cdot(\epsilon\rho_f\vv{V}\vv{V})+\nabla (\epsilon P)-\nabla\cdot(\epsilon\bar{\bar\tau})-\epsilon\rho_f\vv{g}+\mathscr{D}\mu\epsilon\vv{V}+\mathscr{F}\epsilon^2\rho_f|\vv{V}|\vv{V}=0
+\end{equation}
+
+Finally, PRONGHORN neglects viscous shear forces, where Section \ref{sec:Scaling} provides justification. Then, the momentum equation in PRONGHORN becomes:
+
+\begin{equation}
+\label{eq:MomentumPRONGHORN}
+\frac{\partial(\epsilon\rho_f\vv{V})}{\partial t}+\nabla\cdot(\epsilon\rho_f\vv{V}\vv{V})+\nabla (\epsilon P)-\epsilon\rho_f\vv{g}+\mathscr{D}\mu\epsilon\vv{V}+\mathscr{F}\epsilon^2\rho_f|\vv{V}|\vv{V}=0
+\end{equation}
+
+\subsection{The Solid and Fluid Energy Equations}
+\label{sec:EnergyEquations}
+
+Finally, an energy equation is needed because the equations of state for pressure are in terms of two variables - density and total energy. The first law of thermodynamics relates the rate of change of energy in a volume to the rate of energy and heat addition. The total energy is the sum of internal energy and kinetic energy. \(e\), the internal energy per unit mass, represents the potential energy due to bond stretching plus the mean kinetic energy of molecules when moving in a frame of reference moving with the center of mass velocity (vibratory motion). The total energy \(E\) per unit mass is the sum of this internal energy and kinetic energy of the body, per unit mass.
+
+\begin{equation}
+\label{eq:TotalEnergy}
+E=e+\frac{1}{2}|\vv{V}|^2
+\end{equation}
+
+Conservation of this total energy requires a balance between the power supplied by the contact and body forces and the heat addition. This balance is obtained by recognizing that all the forces present in the general momentum balance in Eq. \eqref{eq:CauchyMomentumBalance} should be multiplied by velocity, since power equals force times velocity.
+
+\begin{equation}
+\label{eq:EnergyBalance1}
+\underbrace{\frac{d}{dt}\int_{\volume(t)}^{}\rho Ed\volume}_\text{rate of change of total energy}=\underbrace{\int_{\volume(t)}^{}\rho g_iV_id\volume}_\text{power from gravity forces}+\underbrace{\oint_{S(t)}^{}V_i\sigma_{ij}n_jdS}_\text{power from viscous forces}-\underbrace{\oint_{S(t)}^{}q_in_idS}_\text{heat addition}
+\end{equation}
+
+where \(\vv{q}\) is the heat flux vector representing heat flow out of the fluid particle. The divergence theorem is applied to convert surface integrals to volume integrals.
+
+\begin{equation}
+\label{eq:EnergyBalance}
+\frac{d}{dt}\int_{\volume(t)}^{}\rho Ed\volume=\int_{\volume(t)}^{}\rho g_iV_id\volume+\int_{\volume(t)}^{}\frac{\partial}{\partial x_j}\left(V_i\sigma_{ij}\right)d\volume-\int_{\volume(t)}^{}\frac{\partial}{\partial x_j}\left(q_j\right)d\volume
+\end{equation}
+
+Assuming conservation of mass, and by recognizing that the choice of the volume is arbitrary, Eq. \eqref{eq:EnergyBalance} can be written as:
+
+\begin{equation}
+\label{eq:EnergyBalance2}
+\rho\frac{dE}{dt}=\rho \vv{g}\cdot\vv{V}+\frac{\partial}{\partial x_j}\left(V_i\sigma_{ij}\right)-\nabla\cdot\vv{q}=\rho \vv{g}\cdot\vv{V}+\underbrace{V_i\frac{\partial\sigma_{ij}}{\partial x_j}}_\text{contact power}+\underbrace{\sigma_{ij}\frac{\partial V_i}{\partial x_j}}_\text{deformation power}-\nabla\cdot\vv{q}
+\end{equation}
+
+where suffix notation has been replaced by vector notation in all but one term. By inserting the constitutive relation for \(\sigma_{ij}\) for a Newtonian fluid from Eq. \eqref{eq:NewtonianConstitutive2} into the total energy equation in Eq. \eqref{eq:EnergyBalance2}, after some manipulation, a form useful for implementation is obtained:
+
+\begin{equation}
+\label{eq:EnergyBalance3}
+\rho\frac{\partial E}{\partial t}+\rho\vv{V}\cdot\nabla E=\rho \vv{g}\cdot\vv{V}-\nabla\cdot(P\vv{V})+\nabla\cdot(\bar{\bar{\tau}}\vv{V})+\nabla\cdot(\vv{V}\kappa\nabla\cdot\vv{V})-\nabla\cdot\vv{q}
+\end{equation}
+
+Eq. \eqref{eq:EnergyBalance3} can be cast into conservative form by reversing the chain rule:
+
+\begin{equation}
+\label{eq:EnergyBalance4}
+\begin{aligned}
+\frac{\partial (\rho E)}{\partial t}+\nabla\cdot((\rho E+P)\vv{V})=\rho \vv{g}\cdot\vv{V}+\nabla\cdot(\bar{\bar{\tau}}\vv{V})+\nabla\cdot(\vv{V}\kappa\nabla\cdot\vv{V})-\nabla\cdot\vv{q}\\
+\end{aligned}
+\end{equation}
+
+The enthalpy per unit mass \(h\) is defined as:
+
+\begin{equation}
+\label{eq:Enthalpy}
+\rho h=\rho E +P
+\end{equation} % VERIFY DEFINITION
+
+Inserting this definition into Eq. \eqref{eq:EnergyBalance4}, and neglecting viscous heating effects (\(\nabla\cdot(\bar{\bar{\tau}}\vv{V})\)) and setting \(\kappa=0\) according to the discussion surrounding Eq. \eqref{eq:NavierStokesNonPorous}, the conservative, non-porous form of the energy equation used in PRONGHORN becomes:
+
+\begin{equation}
+\label{eq:EnergyBalance5}
+\begin{aligned}
+\frac{\partial (\rho E)}{\partial t}+\nabla\cdot(\rho h\vv{V})=\rho \vv{g}\cdot\vv{V}-\nabla\cdot\vv{q}\\
+\end{aligned}
+\end{equation}
+
+Assuming that \(\vv{q}=-k\nabla T\) represents the conduction heating, where \(k\) is the thermal conductivity, and including body heating \(q\) and convection heating \(\alpha(T-T_\infty)\) with a heat transfer coefficient \(\alpha\), the non-porous form of the energy equation becomes:
+
+\begin{equation}
+\label{eq:EnergyBalance6}
+\begin{aligned}
+\frac{\partial (\rho E)}{\partial t}+\nabla\cdot(\rho h\vv{V})-\rho \vv{g}\cdot\vv{V}-\nabla\cdot(k\nabla T)+\alpha(T-T_\infty)-q=0\\
+\end{aligned}
+\end{equation}
+
+To obtain the correct units in Eq. \eqref{eq:EnergyBalance6}, \(\alpha\) represents the traditional heat transfer coefficient \(h_{HTC}\) multiplied by \(a_w\):
+
+\begin{equation}
+\label{eq:Alpha}
+\alpha=a_wh_{HTC}
+\end{equation}
+
+where \(a_w\) represents the ratio of the wetted area through which heat transfer can occur in a length of \(\delta x\) per unit volume of length \(\delta x\), in the limit of \(\delta x\) going to zero.
+
+\begin{equation}
+\label{eq:AwLimit}
+a_w=\lim_{\delta x\to 0} \frac{\text{wetted heat transfer area of length } \delta x}{\text{volume of length }\delta x}
+\end{equation}
+
+The heat transfer coefficient can then be calculated directly from correlations in terms of \(Nu\).
+
+\begin{equation}
+\label{eq:AlphaNu}
+\alpha=a_w\frac{k_f Nu}{d_{pebble}}
+\end{equation} % VERIFY EQUATION
+
+With these definitions, the porous media form of Eq. \eqref{eq:EnergyBalance6} for the fluid is obtained by replacing each occurrence of \(\rho_f\) by \(\epsilon\rho_f\) to reflect the portion of the volume that is fluid. Assuming that the porosity, which is technically defined based on the fraction of volume that is fluid , can be extended to represent the fraction of cross-sectional area that is fluid, the conduction term is modified by \(\epsilon\) to reflect the heat transfer in the fluid phase. This assumes that the core is isotropic and all voids are connected, a condition expected in reactor applications. With these modifications, the fluid energy equation used in PRONGHORN becomes:
+
+\begin{equation}
+\label{eq:EnergyBalance7}
+\begin{aligned}
+\frac{\partial (\epsilon\rho_f E)}{\partial t}+\nabla\cdot(\epsilon h_f\rho_f\vv{V})-\nabla\cdot(\epsilon k_f\nabla T)-\epsilon\rho_f \vv{g}\cdot\vv{V}+\alpha(T_f-T_s)-q_f=0\\
+\end{aligned}
+\end{equation}
+
+Note that the convection heat flux is simply added on as a term, but not in the form \(\nabla\cdot\vv{q}\), which would translate to \(\nabla\cdot(\alpha(T_s-T_f))\). In non-porous media, the convective heat transfer appears in the boundary conditions, but here due to the homogeneous nature of the porous media assumption, this term appears in the governing equation itself.
+
+To obtain the solid energy equation, one could simply set \(\vv{V}=0\) in Eq. \eqref{eq:EnergyBalance6} and perform the appropriate porous media modifications. However, equations of state for solid material properties as a function of energy are much more difficult to encounter in the literature than correlations in terms of temperature. Hence, to derive the solid energy equation, equilibrium thermodynamics is used to relate total energy to entropy, and then entropy to temperature to transform Eq. \eqref{eq:EnergyBalance2} to an equation entirely for temperature. Then, \(\vv{V}=0\) will be used to reduce the equation to an equation for the solid temperature.
+
+In order to obtain the entropy equation, the mechanical energy component of Eq. \eqref{eq:EnergyBalance2} is subtracted out by first forming the mechanical energy equation by taking the scalar product of the Cauchy momentum equation in Eq. \eqref{eq:CauchyMomentum} with velocity (since power equals force multiplied by velocity).
+
+\begin{equation}
+\label{eq:MechanicalEnergy}
+V_i\rho\frac{dV_i}{dt}\rightarrow\rho\frac{d}{dt}\left(\frac{1}{2}V_i^2\right)=\rho g_iV_i+V_i\frac{\partial\sigma_{ij}}{\partial x_j}
+\end{equation}
+
+Note that \(\vv{q}\) does not appear, since the heat flux increases internal energy, not kinetic energy. Recognizing that \(V_i\partial\sigma_{ij}/\partial x_j\) appears in the total energy equation in Eq. \eqref{eq:EnergyBalance2}, a balance of internal energy equation is obtained by subtracting Eq. \eqref{eq:MechanicalEnergy} from Eq. \eqref{eq:EnergyBalance2}:
+
+\begin{equation}
+\label{eq:InternalEnergyEquation}
+\rho\frac{de}{dt}=\sigma_{ij}\frac{\partial V_i}{\partial x_j}-\nabla\cdot\vv{q}
+\end{equation}
+
+In order to obtain equations for temperature and entropy, relations from equilibrium thermodynamics are needed. But, from the form of Eq. \eqref{eq:EnergyBalance2}, the dissipative terms on the \gls{rhs} do not represent equilibrium conditions at all - hence, \textit{local} thermodynamic equilibrium must be assumed. While in a global sense the system is not in thermodynamic equilibrium, each fluid particle is assumed to be in equilibrium. This assumption is valid if a fluid particle reaches equilibrium with its surroundings quickly. The time scale on which a fluid particle reaches equilibrium can usually be cast as some multiple of the collision frequency, and provided that this time scale is much smaller than the time scale characterizing the problem, local thermodynamic equilibrium can be assumed. Local equilibrium is attained when local changes in pressure and temperature are relatively small with respect to the far-field values of pressure and temperature. Assuming local thermodynamic equilibrium, changes in energy and entropy can be related to other state variables. 
+
+Any system always has at least two modes of energy transfer - work and heat. The classification of a system depends on the number of available energy transfer modes. Simple systems only experience pressure-volume work, and are not subject to work by electromagnetic fields or other means. Hence, there are two ways by which to change the energy of a simple system - by pressure-volume work and by heat transfer. One thermodynamic property is needed to fix the state of a system for each mode of energy transfer, so the state of a simple, pure system can be fixed with two properties. From the first law of thermodynamics, for a simple, pure system:
+
+\begin{equation}
+\label{eq:FirstLawofThermo}
+de=dq+dw
+\end{equation}
+
+where \(q\) represents heat addition and \(w\) represents work done on the body. For an internally reversible process, \(dq=Tds\), where \(s\) is the entropy of the fluid. For a pure fluid, the only mode of energy transfer besides heat addition is pressure-volume work, so \(dw=-Pd\nu\), where \(\nu\) is the specific volume. While no fluid is truly pure, a fluid can be approximated as pure as long as the components are well-mixed, there is no significant reaction between the components, and the components do not break apart in the flow. Inserting these definitions into Eq. \eqref{eq:FirstLawofThermo}, the Gibbs identity is obtained:
+
+\begin{equation}
+\label{eq:GibbsIdentity}
+de=Tds-Pd\nu
+\end{equation}
+
+% need better explanation for why this always applies
+Because local thermodynamic equilibrium is assumed, the Gibbs identity also applies for irreversible processes. The Gibbs identity is an exact differential, meaning that any form of a differential in \(e\), \(s\), and \(\nu\) produce the form above. Using Eq. \eqref{eq:GibbsIdentity}, the internal energy equation in Eq. \eqref{eq:InternalEnergyEquation} can be formulated into an equation for entropy conservation.
+
+\begin{equation}
+\label{eq:EntropyEquation1}
+\rho\left(T\frac{ds}{dt}-P\frac{d\nu}{dt}\right)=\sigma_{ij}\frac{\partial V_i}{\partial x_j}-\nabla\cdot\vv{q}
+\end{equation}
+
+The second term on the \gls{lhs} can be related to the velocity using the continuity equation, Eq. \eqref{eq:ContinuityNonPorous}.
+
+\begin{equation}
+\frac{d}{dt}\left(\rho^{-1}\right)\rightarrow\frac{-1}{\rho^2}\frac{d\rho}{dt}\rightarrow\frac{\nabla\cdot\vv{V}}{\rho}
+\end{equation}
+
+Inserting this into Eq. \eqref{eq:EntropyEquation1}, and using the constitutive relation for a Newtonian fluid in Eq. \eqref{eq:NewtonianConstitutive1}:
+
+\begin{equation}
+\label{eq:EntropyEquation2}
+\begin{aligned}
+\rho T\frac{ds}{dt}-P\nabla\cdot\vv{V}=\left(-P\delta_{ij}+2\mu e_{ij}+\lambda\nabla\cdot\vv{V}\delta_{ij}\right)\frac{\partial V_i}{\partial x_j}-\nabla\cdot\vv{q}\\
+\rho T\frac{ds}{dt}=2\mu e_{ij}\frac{\partial V_i}{\partial x_j}+\lambda(\nabla\cdot\vv{V})^2-\nabla\cdot\vv{q}\\
+\end{aligned}
+\end{equation}
+
+Using the definition of \(\partial V_i/\partial x_j\) in Eq. \eqref{eq:SymmetricAsymmetric}:
+
+\begin{equation}
+\label{eq:EntropyEquation3}
+\begin{aligned}
+\rho T\frac{ds}{dt}=2\mu e_{ij}(e_{ij}+\xi_{ij})+\lambda(\nabla\cdot\vv{V})^2-\nabla\cdot\vv{q}\\
+\end{aligned}
+\end{equation}
+
+By the property of the multiplication of the symmetric tensor \(e_{ij}\) with the antisymmetric tensor \(\xi_{ij}\), by Eq. \eqref{eq:SymmetricAntisymmetricTensorProduct}, Eq. \eqref{eq:EntropyEquation3} simplifies to an equation representing conservation of entropy:
+
+\begin{equation}
+\label{eq:EntropyEquation4}
+\rho T\frac{ds}{dt}=2\mu e_{ij}^2+\lambda(\nabla\cdot\vv{V})^2-\nabla\cdot\vv{q}\\
+\end{equation}
+
+The entropy equation can equivalently be written in terms of the derivatoric stress tensor \(\bar{\bar{\tau}}\) defined in Eq. \eqref{eq:DeviatoricStressTensor}. Defining:
+
+\begin{equation}
+\label{eq:DeviatoricStressTensorv2}
+\tilde{e}_{ij}\equiv e_{ij}-\frac{1}{3}\nabla\cdot\vv{V}\delta_{ij}\equiv\frac{\bar{\bar{\tau}}}{2\mu}
+\end{equation}
+
+and substituting this into Eq. \eqref{eq:EntropyEquation4} gives an equivalent form of the entropy equation.
+
+\begin{equation}
+\label{eq:EntropyEquation5}
+\rho T\frac{ds}{dt}=2\mu \tilde{e}_{ij}^2+\kappa(\nabla\cdot\vv{V})^2-\nabla\cdot\vv{q}
+\end{equation}
+
+To obtain an equation for temperature that will be used for the solid energy equation, equilibrium thermodynamics requires a relationship between entropy, temperature, and one other state variable. Pressure is selected as this state variable because it is directly related to the boundary conditions and forces. A choice such as \(\rho\) would complicate the equation, since it itself is a function of the other state variable, temperature. With these choices, the derivative of entropy is given by the chain rule as:
+
+\begin{equation}
+\label{eq:EntropyStateVariable}
+\frac{ds}{dt}=\left(\frac{\partial s}{\partial T}\right)_P\frac{dT}{dt}+\left(\frac{\partial s}{\partial P}\right)_T\frac{dP}{dt}
+\end{equation}
+
+Specific heats are defined according to the amount of heat required to increase temperature when heat is added reversibly: 
+
+\begin{equation}
+\label{eq:CpDef}
+C_p\equiv T\left(\frac{\partial s}{\partial T}\right)_P
+\end{equation}
+
+\begin{equation}
+\label{eq:CvDef}
+C_\nu\equiv T\left(\frac{\partial s}{\partial T}\right)_\nu
+\end{equation}
+
+Hence, the coefficient on the first term on the \gls{rhs} of Eq. \eqref{eq:EntropyStateVariable} is \(C_p/T\). The second coefficient can be determined by manipulating the Gibbs identity in Eq. \eqref{eq:GibbsIdentity}. This manipulation gives a thermodynamic relationship known as the Maxwell identity:
+
+\begin{equation}
+\label{eq:entropy_volume}
+-\left(\frac{\partial s}{\partial P}\right)_T=\left(\frac{\partial \nu}{\partial T}\right)_P
+\end{equation}
+
+The expansivity, or volumetric coefficient of thermal expansion, is defined as:
+
+\begin{equation}
+\label{eq:expansivity}
+\beta\equiv\frac{1}{\nu}\left(\frac{\partial \nu}{\partial T}\right)_P
+\end{equation}
+
+Combining Eqs. \eqref{eq:expansivity}, \eqref{eq:entropy_volume}, \eqref{eq:CpDef}, and \eqref{eq:EntropyStateVariable} gives the following relationship between entropy and other state variables that will allow the entropy equation to be transformed to an equation entirely for temperature.
+
+\begin{equation}
+\label{eq:EntropyStateVariable2}
+\frac{ds}{dt}=\frac{C_p}{T}\frac{dT}{dt}-\beta \nu\frac{dP}{dt}
+\end{equation}
+
+Substituting Eq. \eqref{eq:EntropyStateVariable2} into Eq. \eqref{eq:EntropyEquation5} gives the temperature equation:
+
+\begin{equation}
+\label{eq:TemperatureEquation}
+\begin{aligned}
+\underbrace{\rho C_p\frac{dT}{dt}}_\text{stored energy}-\underbrace{T\beta\frac{dP}{dt}}_\text{compression work}=\underbrace{2\mu \tilde{e}_{ij}^2}_\text{viscous heat}+\underbrace{\kappa(\nabla\cdot\vv{V})^2}_\text{volume viscous heat}-\underbrace{\nabla\cdot\vv{q}}_\text{heat conduction}\\
+\end{aligned}
+\end{equation}
+
+Like for the fluid, viscous heating and volumetric heating effects are assumed to be negligible (which is especially true for the solid because its velocity is assumed zero). In addition, compression work is also negligible for a solid. Therefore, the non-porous media form of the solid energy equation simplifies to:
+
+\begin{equation}
+\label{eq:SolidTemperatureEquation}
+\rho C_p\frac{\partial T}{\partial t}=-\nabla\cdot\vv{q}\\
+\end{equation}
+
+To obtain the porous-media form, multiply each occurrence of \(\rho\) by \(1-\epsilon\) to reflect the portion of the volume that is solid. Assuming that heat transfer occurs by conduction within the solid and convection at the surface, while allowing a body heat source, Eq. \eqref{eq:SolidTemperatureEquation} becomes:
+
+\begin{equation}
+\label{eq:SolidPorous}
+(1-\epsilon)\rho_sC_{p,s}\frac{\partial T_s}{\partial t}-\nabla\cdot(\kappa_s\nabla T_s)+\alpha(T_s-T_f)-q_s=0
+\end{equation}
+
+The material thermal conductivity \(k_s\) that would appear in the conduction term is replaced by \(\kappa_s\), the effective thermal conductivity of the solid. Conduction depends not only on the temperature of the solid, but also on the size and shape of the particles, since heat can be conducted from one discrete particle to another, in addition to within a single particle itself. \(\kappa_s\) captures the combined effects of radiation, conduction in the fluid and solid, and convection in the fluid. 
+
+\begin{equation}
+\label{eq:Kappa}
+\kappa_s=\kappa_{\textrm{radiation}}+\kappa_{\textrm{fluid conduction}}+\kappa_{\textrm{solid conduction}}+\kappa_{\textrm{fluid convection}}
+\end{equation}
+
+\subsection{The Finite Element Method}
+\label{sec:FEM}
+
+This section provides a high-level overview of the \gls{fem} that is used to solve the discretized forms of the governing equations in PRONGHORN. The finite element method seeks a solution to a governing differential equation by assuming the solution \(u\) can be expressed as a summation of coefficients \(C\) and shape functions \(\phi\). The solution in a particular element, \(u^h\), is the summation of the expansion coefficients in that element, multiplied by the shape functions over that element. 
+
+\begin{equation}
+\label{eq:FEExpansion}
+u^h=\sum_{j=1}^{n_{nodes}} C_j\phi_j
+\end{equation}
+
+Any differential equation can in general be expressed as \(A(u)=f\), where \(A\) is an operator that acts on the true solution \(u\), and \(f\) is a function that does not contain \(u\). For example, for the continuity equation solved in PRONGHORN, this operator is:
+
+\begin{equation}
+A( )=\left(\frac{\partial( )}{\partial t}+\vv{V}\cdot\nabla( )+( )\cdot\nabla\vv{V}\right)
+\end{equation}
+
+and because there are no sources of mass due to phase change, or other possible means, \(f=0\). To keep the discussion of the numerical method general, all equations will simply be discussed in the form \(A(u)=f\), where the particular forms of \(A\) and \(f\) can be determined from knowledge of the governing equations. The approximation in Eq. \eqref{eq:FEExpansion} in most cases will not be the true solution, and hence if \(u^h\) is substituted back into the governing equation, the equation will not be strictly satisfied. Rather, if \(A(u)-f=0\), then \(A(u^h)-f\neq0\). The ``leftover'' amount is the residual \(r^N\):
+
+\begin{equation}
+\label{eq:residual}
+r^N=A(u^h)-f
+\end{equation}
+
+The objective of the \gls{fem} is to minimize the residual with respect to a particular norm, since a zero residual means that the exact solution has been determined, so long as there exists a unique solution. A weighted residual method is, in general, a requirement that the integral of the residual over the phase space, multiplied by some weighting function \(\psi\), be zero:
+
+\begin{equation}
+\int_\Omega r^N(\Omega)\psi(\Omega)d\Omega=0
+\end{equation}
+
+The \gls{fem} is a weighted residual method, with the most common form of the \gls{fem} being the Galerkin method. The Galerkin method chooses the optimal weight functions \(\psi\) in order to most closely minimize the error \(e^N\equiv u-u^N\). The functions used to construct \(u^N\) in Eq. \eqref{eq:FEExpansion} ``live'' in a particular function space, and the true solution may or may not exist within that space. However, for the error to be minimized, \(e^N\) should be orthogonal to \(u^N\), since that will minimize the ``distance'' between \(u^N\) and the true solution. This requires:
+
+\begin{equation}
+u^N\cdot e^N=0
+\end{equation}
+
+However, the complication with this formulation is that the error is never known (unless solving a problem for which the analytical solution is known), and hence the above requirement does not provide a useful condition. The best approximation to the error can be given by the residual \(r^N\). Hence, Galerkin's method seeks to minimize the residual by requiring that is be orthogonal to the approximate solution \(u^N\):
+
+\begin{equation}
+u^N\cdot r^N=0
+\end{equation}
+
+While only in special cases are the error and residual the same, Galerkin's method very effectively obtains an approximate solution, which is why the method is the foundation of the \gls{fem}. Galerkin's method technically only gives one equation, while we have \(N\) unknowns. However, an even stricter requirement that the above be true for every \(C_j\) in the expansion for \(u^N\) provides the needed \(N\) equations for \(N\) unknowns:
+
+\begin{equation} 
+\int_{\Omega}C_j\phi_j\left(A(C_j\phi_j)-f\right)d\Omega=0\quad\text{for } j=1, 2, 3, \cdots, N
+\end{equation}
+
+What further differentiates the \gls{fem} from other weighted residual methods is the systematic selection of the shape functions \(\phi\) and the formulation of the weak form of the differential equation to reduce differentiability requirements.
+
+\subsubsection{The Weak Form}
+
+Many solutions to physical problems are not continuously differentiable, and hence the higher-order derivatives in the operator \(A\), when integrated, may give infinite or singular values, and hence make application of the Galerkin method impossible. However, by constructing a weak form, the differentiability requirements on the solution are lowered by transferring some of the differentiation to the weight function.
+
+By transferring some differentiation to the weight function, then the differentiability requirements of the approximate solution are lowered, permitting the use of lower-order shape functions (a significant cost savings). In addition, the weak form is actually more accurate than the strong form because it doesn't assume anything about differentiability of material properties or the solution (more than what is found in the weak form itself). 
+
+The weak form is identical to the strong form of the governing equations provided the true solution is sufficiently smooth to satisfy the strong form, and hence the weak form is still an exact representation of the governing physics. The problem statement for a \gls{fem} solution is:
+
+\begin{equation}
+\label{eq:FEProblemStatement}
+\int_{\Omega}r^N(\Omega)\psi(\Omega)d\Omega=0\quad\forall\psi\in \text{space of admissible functions}
+\end{equation}
+
+If this weighted residual statement is required for any arbitrary weight function, then it must be true that the integrand, \(r^N(\Omega)\) equals zero. While the ``for all'' symbol appears in Eq. \eqref{eq:FEProblemStatement}, not any arbitrary shape function can be selected. The considerations that define the space of admissible weight functions are discussed next.
+
+\subsubsection{Shape Functions}
+
+In principle, any set of functions can be used as the shape functions \(\phi\), provided that the integrals in the weak form remain finite. One way to ensure that the integrals remain finite is to require the shape functions to ``live'' within a particular function space. The Hilbert Sobolev space is defined as \(H^l(\Omega)\), where \(l\) refers to the highest derivative of the function that exists. For instance, a square wave lives in \(H^0(\Omega)\), since its first derivative is undefined at locations where the wave height changes. A piecewise function lives in \(H^1(\Omega)\), since first derivatives are everywhere defined, but jumps in the second derivatives lead to infinite integrals when measured in the \(H^2\) norm. The Hilbert-space norm is defined in 1-D as:
+
+\begin{equation}
+\|u\|_{H^I(\Omega)}\equiv\left\lbrack\sum_{j=0}^{I}\int_{\Omega}\left(\frac{d^ju}{dx^j}\right)^2d\Omega\right\rbrack^{1/I}
+\end{equation}
+
+Hence, a function is in \(H^I(\Omega)\) if \(\|u\|_{H^I(\Omega)}<\infty\). The weight functions in the Galerkin method are equivalent to the shape functions, and hence both must be in the same (or higher) Hilbert space required as a minimum in the weak form. For other types of problems, such as in electricity and magnetism where curls appear, the space of admissible test functions may be different from the Hilbert space. 
+
+The shape functions are also \textit{chosen} to be zero on the Dirichlet boundaries. In essence, the expansion in Eq. \eqref{eq:FEExpansion} in its most explicit form reads:
+
+\begin{equation}
+u^N(\Omega)=\phi_0+\sum_{j=1}^{N}C_j\phi_j
+\end{equation}
+
+where \(\phi_0\) is a constant whose only purpose is to satisfy the homogeneous form of the essential (Dirichlet) boundary conditions. This choice is very convenient for the weak form approach, since then the term with displacements evaluated on the boundary drops out of the weak form because the shape functions \(\phi_j\) are always zero on the boundary. 
+
+With the restriction on the function space from which the shape functions can derive, there are still infinitely many choices for shape functions, but some classes of functions have special properties that makes their use in the finite element method nearly universal. The most common choice for shape functions are the Lagrange shape functions, which are polynomials that obtain values of 1 at the node to which they correspond and zero at all other nodes. The fact that these shape functions are zero at all nodes except 1 is extremely advantageous. If \(\phi\) are defined such that they are nonzero over only a small portion of the entire domain, then the matrices that result are sparse. Sparse matrices are much easier to solve. 
+
+\subsubsection{Quadrature}
+\label{sec:Quadrature}
+
+Quadrature rules are used for approximating the integrals that appear in the residual statements for the purpose of reducing the high computational cost associated with analytic integration and allowing evaluation of integrands that may not even have analytic integrals. The appropriate quadrature rule is automatically selected by libMesh.
+
+\subsubsection{Element Mappings}
+
+In order to utilize quadrature rules, all integrals must be transformed to the domain over which the quadrature rule is defined. For Gaussian quadrature, this domain is, in 1-D, from \(-1\leq\xi\leq1\), where \(\xi\) is the coordinate in the ``master element,'' and \(x\) is the coordinate in the physical finite element. This mapping from a global element perspective to a master element allows the use of Gaussian quadrature. Any arbitrary integral in \(x\) is transformed to an integral in \(\xi\) by multiplying by the Jacobian of the transformation, \(\mathscr{J}\):
+
+\begin{equation}
+\int_{a}^{b}f(x)dx\quad\rightarrow\quad\int_{-1}^{1}f(x(\xi))\mathscr{J}d\xi
+\end{equation}
+
+where the Jacobian of the transformation is, in 1-D:
+
+\begin{equation}
+\mathscr{J}\equiv\frac{dx}{d\xi}
+\end{equation}
+
+The mapping \(x(\xi)\) can take a variety of forms, but is generally selected to be an isoparametric mapping defined by:
+
+\begin{equation}
+x(\xi)=\sum_{i=1}^{n_{en}}X_i\phi_i(\xi)
+\end{equation}
+
+where \(X_i\) are the physical nodes and \(\phi\) the shape functions in the master element.
 
 \end{document}
