@@ -1,0 +1,141 @@
+\documentclass[10pt]{article}
+\usepackage[letterpaper]{geometry}
+\geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+\usepackage{setspace}
+\usepackage{ragged2e}
+\usepackage{color, colortbl}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage[font=small,labelfont=bf,labelsep=period]{caption}
+\usepackage[english]{babel}
+\usepackage{indentfirst}
+\usepackage{array}
+\usepackage{makecell}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{arydshln}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xfrac}
+\usepackage{etoolbox}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{dcolumn}
+\usepackage{hyperref}
+\usepackage{courier}
+\usepackage{url}
+\usepackage{esvect}
+\usepackage{commath}
+\usepackage{verbatim} % for block comments
+\usepackage{enumitem}
+\usepackage{hyperref} % for clickable table of contents
+\usepackage{braket}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{gensymb}
+\usepackage{longtable}
+\usepackage{soul} % for striking out text
+\usepackage{rotating} % for sideways tables
+\usepackage{glossaries}
+\usepackage{tcolorbox} % for colored boxes
+\tcbuselibrary{breakable} % to allow colored boxed to extend over multiple pages
+\usepackage[makeroom]{cancel} % to put diagonal lines over equation terms
+\usepackage[mathscr]{euscript} % for script letters
+\usepackage{wasysym}  % for checkboxes
+
+
+
+% Acronyms used
+\setacronymstyle{long-short}
+\newacronym{cfd}{CFD}{Computational Fluid Dynamics}
+\newacronym{cg}{CG}{Conjugate Gradient}
+\newacronym{fe}{FE}{Finite Element}
+\newacronym{fem}{FEM}{Finite Element Method}
+\newacronym{htgr}{HTGR}{High Temperature Gas Reactor}
+\newacronym{io}{I/O}{Input/Output}
+\newacronym{jfnk}{JFNK}{Jacobian-Free Newton Krylov}
+\newacronym{lhs}{LHS}{left-hand-side}
+\newacronym{moose}{MOOSE}{Multiphysics Object-Oriented Simulation Environment}
+\newacronym{pcg}{PCG}{Preconditioned Conjugate Gradient}
+\newacronym{pmpe}{PMPE}{Principle of Minimum Potential Energy}
+\newacronym{rhs}{RHS}{right-hand-side}
+\newacronym{supg}{SUPG}{Streamline-Upwind Petrov-Galerkin}
+
+\onehalfspacing
+
+
+% Wolverine fundamental governing equations, created as commands since they're used so frequently in the manual
+\newcommand{\massconservation}{\epsilon\frac{\partial\rho_f}{\partial t} + \nabla\cdot(\epsilon\rho_f\vv{V})=0} % Eq. \eqref{eq:ContinuityPorous1}
+\newcommand{\momentumconservation}{\epsilon\frac{\partial(\rho_f\vv{V})}{\partial t}+\nabla\cdot(\epsilon\rho_f\vv{V}\vv{V})+\nabla\cdot(\epsilon P\textbf{I})-\epsilon\rho_f\vv{g}+\mathscr{D}\mu\epsilon\vv{V}+\mathscr{F}\epsilon^2\rho_f|\vv{V}|\vv{V}=0} % Eq. \eqref{eq:MomentumPRONGHORN}
+\newcommand{\fluidenergyconservation}{\epsilon\frac{\partial (\rho_f E)}{\partial t}+\nabla\cdot(\epsilon h_f\rho_f\vv{V})-\color{red}\nabla\cdot(\epsilon k_f\nabla T)\color{black}-\epsilon\rho_f \vv{g}\cdot\vv{V}+\alpha(T_f-T_s)-q_f=0} % Eq. \eqref{EnergyBalance7}
+\newcommand{\solidenergyconservation}{(1-\epsilon)\rho_sC_{p,s}\frac{\partial T_s}{\partial t}-\nabla\cdot(\kappa_s\nabla T_s)+\alpha(T_s-T_f)-q_s=0} % Eq. \eqref{eq:SolidPorous}
+
+% Wolverine fundamental governing equations, with nonlinear variables
+\newcommand{\massconservationnlv}{\epsilon\frac{\partial\rho_f}{\partial t} + \nabla\cdot(\epsilon\rho_f\vv{V})=0}
+\newcommand{\momentumconservationnlv}{\epsilon\frac{\partial\vv{\eta}}{\partial t}+\nabla\cdot(\epsilon\vv{\eta}\vv{V})+\nabla\cdot(\epsilon P\textbf{I})-\epsilon\rho_f\vv{g}+\mathscr{D}\mu\epsilon\vv{V}+\mathscr{F}\epsilon^2\vv{\eta}|\vv{V}|=0}
+\newcommand{\fluidenergyconservationnlv}{\epsilon\frac{\partial \gamma_f}{\partial t}+\nabla\cdot(\epsilon h_f\vv{\eta})-\color{red}\nabla\cdot(\epsilon k_f\nabla T)\color{black}-\epsilon\vv{g}\cdot\vv{\eta}+\alpha(T_f-T_s)-q_f=0}
+\newcommand{\solidenergyconservationnlv}{(1-\epsilon)\rho_sC_{p,s}\frac{\partial T_s}{\partial t}-\nabla\cdot(\kappa_s\nabla T_s)+\alpha(T_s-T_f)-q_s=0}
+
+
+\titleclass{\subsubsubsection}{straight}[\subsection]
+
+% define new command for triple sub sections
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+\renewcommand\theparagraph{\thesubsubsubsection.\arabic{paragraph}} % optional; useful if paragraphs are to be numbered
+
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
+  {3.25ex \@plus1ex \@minus .2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\def\toclevel@subsubsubsection{4}
+\def\toclevel@paragraph{5}
+\def\toclevel@paragraph{6}
+\def\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+\def\l@paragraph{\@dottedtocline{5}{10em}{5em}}
+\def\l@subparagraph{\@dottedtocline{6}{14em}{6em}}
+\makeatother
+
+\newcommand{\volume}{\mathop{\ooalign{\hfil$V$\hfil\cr\kern0.08em--\hfil\cr}}\nolimits}
+
+\numberwithin{equation}{section} % for equation numbering
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+\makeglossaries
+\begin{document}
+
+\title{Streamline-Upwind Petrov-Galerkin Stabilization in PRONGHORN}
+\author{April Novak}
+\maketitle
+
+\section{Introduction}
+
+The creation of high-fidelity multiphysics simulation tools for nuclear engineering applications is of high priority to support the development of advanced reactors, where traditionally-used software may be no longer be sufficiently accurate to characterize new reactor operating regimes. PRONGHORN is a \gls{fe} \gls{cfd} code that is currently being developed on the \gls{moose} framework that solves the compressible Euler equations for the density, velocity, and temperature of a fluid flowing in a porous media. Porous media models are of interest for thermal-hydraulic codes because no solid is explicitly meshed - all quantities, such as temperature, are averaged over the liquid and solid phases. While any reactor can be described as a porous media, the approach is especially desirable for modeling pebble bed reactors due to the natural analog between fuel pebbles and the pebbles of sand or rocks for which porous media theory was initially developed. Pebble bed reactors require a mesh on the order of \(10^10\) elements to capture fluid boundary layers and the solid fuel, which gives a huge number of unknowns that can only be solved on the largest supercomputers. With porous media models, the number of elements needed is reduced to about \(10^6\), a number that can feasibly be solved on large desktop computers.
+
+PRONGHORN is under development to provide a thermal-hydraulics solver for advanced reactors that also easily couples to the other
+\gls{moose} codes to provide a framework under which multiphysics simulations are substantially simplified over the traditional approach of coupling two external codes. The majority of the physics in PRONGHORN have been encoded, but a remaining challenge is to stabilize the nonlinear equations governing fluid flow. Stability analysis of the Euler equations shows that there are nodal oscillations in density, pressure, and velocity when \(Pe=Vh\rho C_p/2k>1\), where \(V\) is the velocity, \(h\) the largest dimension associated with a finite element, \(\rho\) the density, \(C_p\) the specific heat, and \(k\) the thermal conductivity. For reactor applications, the Peclet number \(Pe\) characterizes the importance of advection to diffusion, and is typically of order \(10^3-10^4\), and hence the Euler equations are highly unstable. This project applies the \gls{supg} method to stabilize the governing equations such that the Peclet number has no impact on stability, thus allowing simulation without the need for extremely fine spatial meshes.
+
+\section{Mathematics}
+\section{Algorithms}
+\section{Code Use}
+\section{Test Problems and Results}
+\section{Conclusion}
+\section{References}
+\section{Appendix}
+
+\end{document}
