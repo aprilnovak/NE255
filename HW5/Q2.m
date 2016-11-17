@@ -4,19 +4,24 @@ clear all
 % logistical things
 fontsize = 16;
 
-% material data
+% discrete angles
 mu02 = 0.2;
 mu05 = 0.5;
 mu07 = 0.7;
+
+% group cross sections
 Et = [0.5, 0.8, 1.0];
 Es = [0.1+0.3+0.1, 0.1+0.3, 0.1+0.3];
-tolerance = 0.01;
-norm = 1; % intial arbitrary value
+
+% convergence specifications
+tolerance = 1e-6;
 num_iterations = 0;
 max_iterations = 1000;
-plot_num = 1;
-alpha = 0.50;
+
+alpha = 0.5;
 h = 0.10;
+G = 3;
+
 mesh = 0:h:2;
 elem_length = mesh(2);
 coordinates = 0:(elem_length / 2):2;
@@ -24,11 +29,10 @@ coordinates = 0:(elem_length / 2):2;
 % initial guess for the scattering source for __each__ group. After each 
 % within-group calculation, this source will be specialized depending
 % on the energy group.
-q = 1.0 .* coordinates;
-g = 1; % energy group
 
-
-
+for g = 1:G
+        q = 1.0 .* coordinates;
+        norm = 1;
         % each within-group calculation finds the angular flux for that group
 
         % initial guess for the scattering source is simply set to the 
@@ -55,16 +59,17 @@ g = 1; % energy group
             while i <= (length(coordinates) - 2)
                 % compute cell-centered value
                 psi02(i + 1) = (q(i+1) + (2 / (1 + alpha)) * (abs(mu02) * psi02(i) ./ elem_length)) / (Et(g) + (2 / (1 + alpha)) * abs(mu02) / elem_length);
+                psi05(i + 1) = (q(i+1) + (2 / (1 + alpha)) * (abs(mu05) * psi05(i) ./ elem_length)) / (Et(g) + (2 / (1 + alpha)) * abs(mu05) / elem_length);
                 psi07(i + 1) = (q(i+1) + (2 / (1 + alpha)) * (abs(mu07) * psi07(i) ./ elem_length)) / (Et(g) + (2 / (1 + alpha)) * abs(mu07) / elem_length);
 
                 % compute out-going value
                 psi02(i + 2) = (2 / (1 + alpha)) * psi02(i + 1) - ((1 - alpha)/(1 + alpha)) * psi02(i);
+                psi05(i + 2) = (2 / (1 + alpha)) * psi05(i + 1) - ((1 - alpha)/(1 + alpha)) * psi05(i);
                 psi07(i + 2) = (2 / (1 + alpha)) * psi07(i + 1) - ((1 - alpha)/(1 + alpha)) * psi07(i);
    
                 % move to next cell
                 i = i + 2;
             end
-            
 
             % negative sweep - store the outgoing flux to apply periodic BC
             i = length(coordinates);
@@ -108,14 +113,16 @@ g = 1; % energy group
         end
         
         % compute scalar flux
+        phi = zeros(1, length(psi02(2:2:end)));
         phi = (1/6) .* (psi02(2:2:end) + psi_n02(2:2:end) + psi05(2:2:end) + psi_n05(2:2:end) + psi07(2:2:end) + psi_n07(2:2:end));
        
         % save the scalar flux to the appropriate energy group
         group_flux(g,:) = phi;
         
-        % perform the next energy group
-        g = g + 1;
-        
+        % save the angular flux as well
+        group_flux02(g,:) = psi02(2:2:end);
+        %0.5 * (psi02(2:2:end) + psi_n02(2:2:end));
+end    
         
         
         
