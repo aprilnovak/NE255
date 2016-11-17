@@ -273,7 +273,7 @@ Matrix or Vector & Size (Symbolic) & Size (Actual) \\ [0.5ex]
 \textbf{(b)}: For this particular problem:
 
 \begin{equation}
-\textbf{M}=\left\{
+\textbf{M}_{gg}=\left\{
 \begin{array}{*{13}c}
 Y_{00}^e(\hat{\Omega}_1)  & Y_{10}^e(\hat{\Omega}_1) & Y_{11}^o(\hat{\Omega}_1) & Y_{11}^e(\hat{\Omega}_1) & Y_{20}^e(\hat{\Omega}_1) & Y_{21}^o(\hat{\Omega}_1) & Y_{21}^e(\hat{\Omega}_1) & Y_{22}^o(\hat{\Omega}_1) & Y_{22}^e(\hat{\Omega}_1)\\
 Y_{00}^e(\hat{\Omega}_2)  & Y_{10}^e(\hat{\Omega}_2) & Y_{11}^o(\hat{\Omega}_2) & Y_{11}^e(\hat{\Omega}_2) & Y_{20}^e(\hat{\Omega}_2) & Y_{21}^o(\hat{\Omega}_2) & Y_{21}^e(\hat{\Omega}_2) & Y_{22}^o(\hat{\Omega}_2) & Y_{22}^e(\hat{\Omega}_2)\\
@@ -331,7 +331,27 @@ e_{00}^1 & e_{10}^1 & o_{11}^1 & e_{11}^1 & e_{20}^1 & o_{21}^1 & e_{21}^1 & o_{
 
 where the superscript indicates the energy group. The moments \(e\) and \(o\) are defined in Eq. \eqref{eq:FluxMoments31}.\newline
 
-\textbf{(c)}: 
+\textbf{(c)}: The \textbf{D} matrix is used to convert between the discrete angular fluxes to the moments of the angular flux by \(\phi=\textbf{D}\psi\). The discrete form of \textbf{D} is defined by:
+
+\begin{equation}
+\textbf{D}=\textbf{M}^T\textbf{W}
+\end{equation}
+
+where \textbf{M} is defined in Eq. \eqref{eq:MatrixEquationProblem1} as containing \(\textbf{M}_{gg}\) matrices along its diagonal and \textbf{W} is a diagonal matrix containing \(n\) quadrature points per group (since we're using \(S_N\)) - these quadrature points are aligned along the diagonal in a repeated fashion for each energy group. The form of \textbf{D} is therefore:
+
+\begin{equation}
+\textbf{D}=\begin{bmatrix}
+w_1Y_{00}^e & w_2Y_{00}^e & w_3Y_{00}^e & w_4Y_{00}^e & w_5Y_{00}^e & w_6Y_{00}^e & w_7Y_{00}^e & w_8Y_{00}^e\\
+w_1Y_{10}^e & w_2Y_{10}^e & w_3Y_{10}^e & w_4Y_{10}^e & w_5Y_{10}^e & w_6Y_{10}^e & w_7Y_{10}^e & w_8Y_{10}^e\\
+w_1Y_{11}^o & w_2Y_{11}^o & w_3Y_{11}^o & w_4Y_{11}^o & w_5Y_{11}^o & w_6Y_{11}^o & w_7Y_{11}^o & w_8Y_{11}^o\\
+w_1Y_{11}^e & w_2Y_{11}^e & w_3Y_{11}^e & w_4Y_{11}^e & w_5Y_{11}^e & w_6Y_{11}^e & w_7Y_{11}^e & w_8Y_{11}^e\\
+w_1Y_{20}^e & w_2Y_{20}^e & w_3Y_{20}^e & w_4Y_{20}^e & w_5Y_{20}^e & w_6Y_{20}^e & w_7Y_{20}^e & w_8Y_{20}^e\\
+w_1Y_{21}^o & w_2Y_{21}^o & w_3Y_{21}^o & w_4Y_{21}^o & w_5Y_{21}^o & w_6Y_{21}^o & w_7Y_{21}^o & w_8Y_{21}^o\\
+w_1Y_{21}^e & w_2Y_{21}^e & w_3Y_{21}^e & w_4Y_{21}^e & w_5Y_{21}^e & w_6Y_{21}^e & w_7Y_{21}^e & w_8Y_{21}^e\\
+w_1Y_{22}^o & w_2Y_{22}^o & w_3Y_{22}^o & w_4Y_{22}^o & w_5Y_{22}^o & w_6Y_{22}^o & w_7Y_{22}^o & w_8Y_{22}^o\\
+w_1Y_{22}^e & w_2Y_{22}^e & w_3Y_{22}^e & w_4Y_{22}^e & w_5Y_{22}^e & w_6Y_{22}^e & w_7Y_{22}^e & w_8Y_{22}^e\\
+\end{bmatrix}
+\end{equation}
 
 \section{Appendix}
 This section contains all the code used for each question. 
