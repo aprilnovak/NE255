@@ -91,7 +91,168 @@
 
 \textbf{NE 255: HW5}1, 2\hfill April Novak\newline
 
-\circled{1} 
+\circled{1} The \(S_N\) form of the neutron transport equation is:
+
+\begin{equation}
+\label{eq:StartofOperatorForm}
+\begin{aligned}
+ \hat{\Omega}_a\cdot\nabla\psi_a^g(\vv{r}) + 
+ \Sigma_t^g(\vv{r})\psi_a^g(\vv{r}) = \\
+\sum_{l=0}^{N}\left\lbrack Y_{l0}^e(\hat{\Omega}_a)s_{l0}^g(\vv{r})+\sum_{m=1}^{l}\left(Y_{lm}^e(\hat{\Omega}_a)s_{lm}^g(\vv{r})+Y_{lm}^o(\hat{\Omega}_a)v_{lm}^g(\vv{r})\right)\right\rbrack+\\
+\sum_{g'=1}^G\sum_{l=0}^{N}\Sigma_{s,l}(\vv{r}, g'\rightarrow g)\left\lbrack Y_{l0}^e(\hat{\Omega}_a)e_{l0}^{g'}(\vv{r})+\sum_{m=1}^{l}\left(Y_{lm}^e(\hat{\Omega}_a)e_{lm}^{g'}(\vv{r})+Y_{lm}^o(\hat{\Omega}_a)o_{lm}^{g'}(\vv{r})\right)\right\rbrack\quad\\
+\end{aligned}
+\end{equation}
+
+where the equation has now been transformed to a form that accounts for energy groups, rather than applying to a within-group equation. So, all energy dependence is removed, since a group structure now accounts for that dependence. The \(g\) superscript refers to the energy group number, and \(G\) to the total number of energy groups. Within-group scattering is counted in the scattering term, but is canceled by the total interaction term, which avoids double counting. The above equation can be cast in operator form. The external group source is defined as:
+
+\begin{equation}
+q_e^g(\vv{r})=\sum_{l=0}^{N}\left\lbrack Y_{l0}^e(\hat{\Omega}_a)s_{l0}^g(\vv{r})+\sum_{m=1}^{l}\left(Y_{lm}^e(\hat{\Omega}_a)s_{lm}^g(\vv{r})+Y_{lm}^o(\hat{\Omega}_a)v_{lm}^g(\vv{r})\right)\right\rbrack
+\end{equation}
+
+in order to permit easier equation manipulation. In addition, several operators are defined. The transport operator is:
+
+\begin{equation}
+\textbf{L}\equiv\hat{\Omega}_a\cdot\nabla+\Sigma_t^g
+\end{equation}
+
+and the solution vector \(\Psi\) is a column vector containing each energy group flux vector \(\vv{\psi}\):
+
+\begin{equation}
+\Psi=\begin{bmatrix}\vv{\psi}_1&\vv{\psi}_2&\vv{\psi}_3&\cdots&\vv{\psi}_G\end{bmatrix}^T
+\end{equation}
+
+where \(\vv{\psi}\) is then a column vector that contains the flux for each discrete angle for that particular energy group \(g\):
+
+\begin{equation}
+\vv{\psi}_g=\begin{bmatrix}\psi_1^g&\psi_2^g&\psi_3^g&\cdots&\psi_n^g\end{bmatrix}^T
+\end{equation}
+
+So, the vector of unknowns is organized by energy group, and in the section pertaining to each group, by angle. In order to discuss the size of these matrices and vectors, several variables are defined:
+
+\begin{equation}
+\begin{aligned}
+G=&\ \text{number of energy groups}\\
+t = &\ \text{number of moments}\\
+n = &\ \text{number of angles}\\
+N = &\ P_N\text{\ order}\\
+N_c=&\ \text{number of cells}\\
+N_e=&\ \text{number of unknowns per cell}\\
+\end{aligned}
+\end{equation} 
+
+So, if the problem consisted of a single cell with a single node (i.e. only one spatial unknown), then \(\Psi\) would be an \((Gn)\times1\) vector. However, the problems solves will consist of a spatial domain that is also present in \(\Psi\). In reality, each \(\psi_{\hat{\Omega}_n}^g\) term is solved as a function of space, and is therefore not a scalar value, but an \(N_cN_e\times1\) vector. The \(S_N\) equation for a particular angle and group is solved as a function of space using a variety of methods, such as the finite element method or the finite difference method. So, the total size of \(\Psi\) is \(N_cN_eGn\times1\). The external source \(q_e^g\) is defined in a similar manner, and is represented as \(Q\), an \(N_cN_eGn\times1\) vector.
+
+Expressing the mapping between flux moments and the scattering term is more difficult simply due to the difficulty in visualizing the matrix multiplication. The moment-to-discrete matrix is used to project harmonic moments onto discrete angle space. It is defined as:
+
+\begin{equation}
+\textbf{M}=\left\{
+\begin{array}{*{13}c}
+Y_{00}^e(\hat{\Omega}_1) & Y_{00}^o(\hat{\Omega}_1) & Y_{01}^e(\hat{\Omega}_1) & Y_{01}^o(\hat{\Omega}_1) & Y_{10}^e(\hat{\Omega}_1) & Y_{10}^o(\hat{\Omega}_1) & Y_{11}^e(\hat{\Omega}_1) & Y_{11}^o(\hat{\Omega}_1) & \cdots & Y_{NN}^e(\hat{\Omega}_1) & Y_{NN}^o(\hat{\Omega}_1)\\
+Y_{00}^e(\hat{\Omega}_2) & Y_{00}^o(\hat{\Omega}_2) & Y_{01}^e(\hat{\Omega}_2) & Y_{01}^o(\hat{\Omega}_2) & Y_{10}^e(\hat{\Omega}_2) & Y_{10}^o(\hat{\Omega}_2) & Y_{11}^e(\hat{\Omega}_2) & Y_{11}^o(\hat{\Omega}_2) & \cdots & Y_{NN}^e(\hat{\Omega}_2) & Y_{NN}^o(\hat{\Omega}_2)\\
+\vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
+Y_{00}^e(\hat{\Omega}_n) & Y_{00}^o(\hat{\Omega}_n) & Y_{01}^e(\hat{\Omega}_n) & Y_{01}^o(\hat{\Omega}_n) & Y_{10}^e(\hat{\Omega}_n) & Y_{10}^o(\hat{\Omega}_n) & Y_{11}^e(\hat{\Omega}_n) & Y_{11}^o(\hat{\Omega}_n) & \cdots & Y_{NN}^e(\hat{\Omega}_n) & Y_{NN}^o(\hat{\Omega}_n)\\
+\end{array}\right\}
+\end{equation}
+
+But, some of these components are actually always zero - for instance, from the expansion in Eq. \eqref{eq:StartofOperatorForm}, if \(l=0\), then there are no spherical harmonics for which \(m\neq0\). This eliminates \(Y_{01}^e\) and \(Y_{01}^o\). In addition, \(Y_{00}^o=0\) and \(Y_{10}^o=0\) since there is no odd component for \(l=0,1\) and \(m=0\). This gives a simplified version of the moment-to-discrete matrix, where the only difference between this matrix and the more explicit one above is that several of the low \(l\) and \(m\) spherical harmonics that are zero are removed.
+
+\begin{equation}
+\textbf{M}=\left\{
+\begin{array}{*{13}c}
+Y_{00}^e(\hat{\Omega}_1)  & Y_{10}^e(\hat{\Omega}_1) & Y_{11}^e(\hat{\Omega}_1) & Y_{11}^o(\hat{\Omega}_1) & Y_{20}^e(\hat{\Omega}_1) & Y_{20}^o(\hat{\Omega}_1) & \cdots & Y_{NN}^e(\hat{\Omega}_1) & Y_{NN}^o(\hat{\Omega}_1)\\
+Y_{00}^e(\hat{\Omega}_2)  & Y_{10}^e(\hat{\Omega}_2) & Y_{11}^e(\hat{\Omega}_2) & Y_{11}^o(\hat{\Omega}_2) & Y_{20}^e(\hat{\Omega}_2) & Y_{20}^o(\hat{\Omega}_2) & \cdots & Y_{NN}^e(\hat{\Omega}_2) & Y_{NN}^o(\hat{\Omega}_2)\\
+\vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
+Y_{00}^e(\hat{\Omega}_n) & Y_{10}^e(\hat{\Omega}_n) & Y_{11}^e(\hat{\Omega}_n) & Y_{11}^o(\hat{\Omega}_n) & Y_{20}^e(\hat{\Omega}_n) & Y_{20}^o(\hat{\Omega}_n) & \cdots & Y_{NN}^e(\hat{\Omega}_n) & Y_{NN}^o(\hat{\Omega}_n)\\
+\end{array}\right\}
+\end{equation}
+
+The scattering matrix contains along its diagonal the scattering moments:
+
+\begin{equation}
+\textbf{S}_{g^{'}\rightarrow g}=\begin{bmatrix}
+\Sigma_{s0}
+\end{bmatrix}
+\end{equation}
+
+With this definition, the discretization of the transport equation leads to the following matrix system:
+
+\begin{equation}
+\textbf{L}\begin{bmatrix}\Psi_1\\\Psi_2\\\Psi_3\\\vdots\\\Psi_G\end{bmatrix}=
+\begin{bmatrix}
+\textbf{M} & 0 & 0 & 0 & 0\\
+0 & \textbf{M} & 0 & 0 & 0\\
+0 & 0 & \textbf{M} & 0 & 0\\
+0 & 0 & 0 & \cdots & 0\\
+0 & 0 & 0 & 0 & \textbf{M}\\
+\end{bmatrix}
+\begin{bmatrix}
+\textbf{S}_{11} & \textbf{S}_{12} & \textbf{S}_{13} & \cdots & \textbf{S}_{1G}\\
+\textbf{S}_{21} & \textbf{S}_{22} & \textbf{S}_{23} & \cdots & \textbf{S}_{2G}\\
+\textbf{S}_{31} & \textbf{S}_{32} & \textbf{S}_{33} & \cdots & \textbf{S}_{3G}\\
+\vdots & \vdots & \vdots & \vdots & \vdots\\
+\textbf{S}_{G1} & \textbf{S}_{G2} & \textbf{G}_{23} & \cdots & \textbf{S}_{GG}\\
+\end{bmatrix}
+\begin{bmatrix}
+\Phi_1\\\Phi_2\\\Phi_3\\\vdots\\\Phi_G
+\end{bmatrix}
++
+\begin{bmatrix}
+Q_1\\Q_2\\Q_3\\\vdots\\Q_G
+\end{bmatrix}
+\end{equation}
+
+Hence, the upper triangular portion of the scattering matrix represents upscattering, while the diagonal represents within-group scattering, and the lower triangular portion represents downscattering. \(\Phi\) represents a vector of the angular flux moments used in the expansion of the scattering term, organized by group. 
+
+\begin{equation}
+\Phi_g=\begin{bmatrix}
+o_{00}^g & e_{00}^g & o_{01}^g & e_{01}^g & o_{10}^g & e_{10}^g & \cdots & o_{NN}^g & e_{NN}^g\\
+\end{bmatrix}^T
+\end{equation}
+
+where \(e_{lm}\) and \(o_{lm}\) are defined by Eq. \eqref{eq:FluxMoments31}. Note, however, that some of these terms are zero due to how the expansion is performed. Moments with \(l=0\) are only nonzero for \(m=0\). And, there is no odd component for \(l=0\). 
+
+\begin{equation}
+\Phi_g=\begin{bmatrix}
+e_{00}^g & e_{10}^g & o_{11}^g & e_{11}^g & \cdots & o_{NN}^g & e_{NN}^g\\
+\end{bmatrix}^T
+\end{equation}
+
+\begin{equation}
+\label{eq:FluxMoments31}
+\begin{aligned}
+e_{lm}(\vv{r},E')=\int_{4\pi}^{}d\hat{\Omega}'Y_{lm}^e(\hat{\Omega}')\psi(\vv{r}, E',\hat{\Omega}')\\
+o_{lm}(\vv{r},E')=\int_{4\pi}^{}d\hat{\Omega}'Y_{lm}^o(\hat{\Omega}')\psi(\vv{r}, E',\hat{\Omega}')\\
+\end{aligned}
+\end{equation}
+
+For this specific problem, the discretized \(S_N\) equations become:
+
+\begin{equation}
+\label{eq:MatrixEquationProblem1}
+\textbf{L}\begin{bmatrix}\Psi_1\\\Psi_2\\\Psi_3\\\end{bmatrix}=
+\begin{bmatrix}
+\textbf{M} & 0 & 0 \\
+0 & \textbf{M} & 0 \\
+0 & 0 & \textbf{M} \\
+\end{bmatrix}
+\begin{bmatrix}
+\textbf{S}_{11} & \textbf{S}_{12} & \textbf{S}_{13} \\
+\textbf{S}_{21} & \textbf{S}_{22} & \textbf{S}_{23} \\
+\textbf{S}_{31} & \textbf{S}_{32} & \textbf{S}_{33} \\
+\end{bmatrix}
+\begin{bmatrix}
+\Phi_1\\\Phi_2\\\Phi_3
+\end{bmatrix}
++
+\begin{bmatrix}
+Q_1\\Q_2\\Q_3
+\end{bmatrix}
+\end{equation}
+
+where the groups are numbered 1, 2, and 3, with 1 being the highest-energy group.\newline
+
+\textbf{(a)}: The dimensions of each of the matrices shown in Eq. \eqref{eq:MatrixEquationProblem1} are summarized in the table below.
+
 
 \section{Appendix}
 This section contains all the code used for each question. 
