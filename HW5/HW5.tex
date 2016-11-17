@@ -103,7 +103,7 @@
 \end{aligned}
 \end{equation}
 
-where the equation has now been transformed to a form that accounts for energy groups, rather than applying to a within-group equation. So, all energy dependence is removed, since a group structure now accounts for that dependence. The \(g\) superscript refers to the energy group number, and \(G\) to the total number of energy groups. Within-group scattering is counted in the scattering term, but is canceled by the total interaction term, which avoids double counting. The above equation can be cast in operator form. The external group source is defined as:
+The \(g\) superscript refers to the energy group number, and \(G\) to the total number of energy groups. Within-group scattering is counted in the scattering term, but is canceled by the total interaction term, which avoids double counting. The above equation can be cast in operator form. The external group source is defined as:
 
 \begin{equation}
 q_e^g(\vv{r})=\sum_{l=0}^{N}\left\lbrack Y_{l0}^e(\hat{\Omega}_a)s_{l0}^g(\vv{r})+\sum_{m=1}^{l}\left(Y_{lm}^e(\hat{\Omega}_a)s_{lm}^g(\vv{r})+Y_{lm}^o(\hat{\Omega}_a)v_{lm}^g(\vv{r})\right)\right\rbrack
@@ -147,22 +147,22 @@ Expressing the mapping between flux moments and the scattering term is more diff
 \begin{equation}
 \textbf{M}=\left\{
 \begin{array}{*{13}c}
-Y_{00}^e(\hat{\Omega}_1) & Y_{00}^o(\hat{\Omega}_1) & Y_{01}^e(\hat{\Omega}_1) & Y_{01}^o(\hat{\Omega}_1) & Y_{10}^e(\hat{\Omega}_1) & Y_{10}^o(\hat{\Omega}_1) & Y_{11}^e(\hat{\Omega}_1) & Y_{11}^o(\hat{\Omega}_1) & \cdots & Y_{NN}^e(\hat{\Omega}_1) & Y_{NN}^o(\hat{\Omega}_1)\\
-Y_{00}^e(\hat{\Omega}_2) & Y_{00}^o(\hat{\Omega}_2) & Y_{01}^e(\hat{\Omega}_2) & Y_{01}^o(\hat{\Omega}_2) & Y_{10}^e(\hat{\Omega}_2) & Y_{10}^o(\hat{\Omega}_2) & Y_{11}^e(\hat{\Omega}_2) & Y_{11}^o(\hat{\Omega}_2) & \cdots & Y_{NN}^e(\hat{\Omega}_2) & Y_{NN}^o(\hat{\Omega}_2)\\
+Y_{00}^o(\hat{\Omega}_1) & Y_{00}^e(\hat{\Omega}_1) & Y_{01}^o(\hat{\Omega}_1) & Y_{01}^e(\hat{\Omega}_1) & Y_{10}^o(\hat{\Omega}_1) & Y_{10}^e(\hat{\Omega}_1) & Y_{11}^o(\hat{\Omega}_1) & Y_{11}^e(\hat{\Omega}_1) & \cdots & Y_{NN}^o(\hat{\Omega}_1) & Y_{NN}^e(\hat{\Omega}_1)\\
+Y_{00}^o(\hat{\Omega}_2) & Y_{00}^e(\hat{\Omega}_2) & Y_{01}^o(\hat{\Omega}_2) & Y_{01}^e(\hat{\Omega}_2) & Y_{10}^o(\hat{\Omega}_2) & Y_{10}^e(\hat{\Omega}_2) & Y_{11}^o(\hat{\Omega}_2) & Y_{11}^e(\hat{\Omega}_2) & \cdots & Y_{NN}^o(\hat{\Omega}_2) & Y_{NN}^e(\hat{\Omega}_2)\\
 \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
-Y_{00}^e(\hat{\Omega}_n) & Y_{00}^o(\hat{\Omega}_n) & Y_{01}^e(\hat{\Omega}_n) & Y_{01}^o(\hat{\Omega}_n) & Y_{10}^e(\hat{\Omega}_n) & Y_{10}^o(\hat{\Omega}_n) & Y_{11}^e(\hat{\Omega}_n) & Y_{11}^o(\hat{\Omega}_n) & \cdots & Y_{NN}^e(\hat{\Omega}_n) & Y_{NN}^o(\hat{\Omega}_n)\\
+Y_{00}^o(\hat{\Omega}_n) & Y_{00}^e(\hat{\Omega}_n) & Y_{01}^o(\hat{\Omega}_n) & Y_{01}^e(\hat{\Omega}_n) & Y_{10}^o(\hat{\Omega}_n) & Y_{10}^e(\hat{\Omega}_n) & Y_{11}^o(\hat{\Omega}_n) & Y_{11}^e(\hat{\Omega}_n) & \cdots & Y_{NN}^o(\hat{\Omega}_n) & Y_{NN}^e(\hat{\Omega}_n)\\
 \end{array}\right\}
 \end{equation}
 
-But, some of these components are actually always zero - for instance, from the expansion in Eq. \eqref{eq:StartofOperatorForm}, if \(l=0\), then there are no spherical harmonics for which \(m\neq0\). This eliminates \(Y_{01}^e\) and \(Y_{01}^o\). In addition, \(Y_{00}^o=0\) and \(Y_{10}^o=0\) since there is no odd component for \(l=0,1\) and \(m=0\). This gives a simplified version of the moment-to-discrete matrix, where the only difference between this matrix and the more explicit one above is that several of the low \(l\) and \(m\) spherical harmonics that are zero are removed.
+But, some of these components are actually always zero - for instance, from the expansion in Eq. \eqref{eq:StartofOperatorForm}, if \(l=0\), then there are no spherical harmonics for which \(m\neq0\). This eliminates \(Y_{01}^e\) and \(Y_{01}^o\). In addition, \(Y_{00}^o=0\) and \(Y_{10}^o=0\) since there is no odd component for \(m=0\). This gives a simplified version of the moment-to-discrete matrix, where the only difference between this matrix and the more explicit one above is that several of the low \(l\) and \(m\) spherical harmonics that are zero are removed.
 
 \begin{equation}
 \textbf{M}=\left\{
 \begin{array}{*{13}c}
-Y_{00}^e(\hat{\Omega}_1)  & Y_{10}^e(\hat{\Omega}_1) & Y_{11}^e(\hat{\Omega}_1) & Y_{11}^o(\hat{\Omega}_1) & Y_{20}^e(\hat{\Omega}_1) & Y_{20}^o(\hat{\Omega}_1) & \cdots & Y_{NN}^e(\hat{\Omega}_1) & Y_{NN}^o(\hat{\Omega}_1)\\
-Y_{00}^e(\hat{\Omega}_2)  & Y_{10}^e(\hat{\Omega}_2) & Y_{11}^e(\hat{\Omega}_2) & Y_{11}^o(\hat{\Omega}_2) & Y_{20}^e(\hat{\Omega}_2) & Y_{20}^o(\hat{\Omega}_2) & \cdots & Y_{NN}^e(\hat{\Omega}_2) & Y_{NN}^o(\hat{\Omega}_2)\\
-\vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
-Y_{00}^e(\hat{\Omega}_n) & Y_{10}^e(\hat{\Omega}_n) & Y_{11}^e(\hat{\Omega}_n) & Y_{11}^o(\hat{\Omega}_n) & Y_{20}^e(\hat{\Omega}_n) & Y_{20}^o(\hat{\Omega}_n) & \cdots & Y_{NN}^e(\hat{\Omega}_n) & Y_{NN}^o(\hat{\Omega}_n)\\
+Y_{00}^e(\hat{\Omega}_1)  & Y_{10}^e(\hat{\Omega}_1) & Y_{11}^o(\hat{\Omega}_1) & Y_{11}^e(\hat{\Omega}_1) & Y_{20}^e(\hat{\Omega}_1) & \cdots & Y_{NN}^o(\hat{\Omega}_1) & Y_{NN}^e(\hat{\Omega}_1)\\
+Y_{00}^e(\hat{\Omega}_2)  & Y_{10}^e(\hat{\Omega}_2) & Y_{11}^o(\hat{\Omega}_2) & Y_{11}^e(\hat{\Omega}_2) & Y_{20}^e(\hat{\Omega}_2) & \cdots & Y_{NN}^o(\hat{\Omega}_2) & Y_{NN}^e(\hat{\Omega}_2)\\
+\vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
+Y_{00}^e(\hat{\Omega}_n) & Y_{10}^e(\hat{\Omega}_n) & Y_{11}^o(\hat{\Omega}_n) & Y_{11}^e(\hat{\Omega}_n) & Y_{20}^e(\hat{\Omega}_n) & \cdots & Y_{NN}^o(\hat{\Omega}_n) & Y_{NN}^e(\hat{\Omega}_n)\\
 \end{array}\right\}
 \end{equation}
 
@@ -229,30 +229,109 @@ For this specific problem, the discretized \(S_N\) equations become:
 
 \begin{equation}
 \label{eq:MatrixEquationProblem1}
-\textbf{L}\begin{bmatrix}\Psi_1\\\Psi_2\\\Psi_3\\\end{bmatrix}=
-\begin{bmatrix}
+\underbrace{\textbf{L}}_{\circled{1}}\underbrace{\begin{bmatrix}\Psi_1\\\Psi_2\\\Psi_3\\\end{bmatrix}}_{\circled{2}}=
+\underbrace{\begin{bmatrix}
 \textbf{M} & 0 & 0 \\
 0 & \textbf{M} & 0 \\
 0 & 0 & \textbf{M} \\
-\end{bmatrix}
-\begin{bmatrix}
+\end{bmatrix}}_{\circled{3}}
+\underbrace{\begin{bmatrix}
 \textbf{S}_{11} & \textbf{S}_{12} & \textbf{S}_{13} \\
 \textbf{S}_{21} & \textbf{S}_{22} & \textbf{S}_{23} \\
 \textbf{S}_{31} & \textbf{S}_{32} & \textbf{S}_{33} \\
-\end{bmatrix}
-\begin{bmatrix}
+\end{bmatrix}}_{\circled{4}}
+\underbrace{\begin{bmatrix}
 \Phi_1\\\Phi_2\\\Phi_3
-\end{bmatrix}
+\end{bmatrix}}_{\circled{5}}
 +
-\begin{bmatrix}
+\underbrace{\begin{bmatrix}
 Q_1\\Q_2\\Q_3
-\end{bmatrix}
+\end{bmatrix}}_{\circled{6}}
 \end{equation}
 
 where the groups are numbered 1, 2, and 3, with 1 being the highest-energy group.\newline
 
-\textbf{(a)}: The dimensions of each of the matrices shown in Eq. \eqref{eq:MatrixEquationProblem1} are summarized in the table below.
+\textbf{(a)}: The dimensions of each of the matrices shown in Eq. \eqref{eq:MatrixEquationProblem1} are summarized in the table below, according to the numbering scheme shown above. For this problem, \(G=3, n=8, N_c=4^3, N_e=4, N=2, t=(N+1)^2=9\). \(N_e=4\) because for each cell, the cell-centered flux and the outgoing fluxes for three of the six faces are unknown.
 
+\begin{table}[h]
+\caption{Sizes of matrices in Eq. \eqref{eq:MatrixEquationProblem1}.}
+\centering
+\begin{tabular}{c c c}
+\hline\hline
+Matrix or Vector & Size (Symbolic) & Size (Actual) \\ [0.5ex]
+\hline % inserts single-line
+\circled{1} & \(GnN_cN_e\times GnN_cN_e\) & \(6144\times6144\)\\
+\circled{2} & \(GnN_cN_e\times1\) & \(6144\times1\)\\
+\circled{3} & \(GnN_cN_e\times GtN_cN_e\) & \(6144\times6192\)\\
+\circled{4} & \(GtN_cN_e\times GtN_cN_e\) & \(6192\times6192\)\\
+\circled{5} & \(GtN_cN_e\times 1\) & \(6192\times1\)\\
+\circled{6} & \(GnN_cN_e\times1\) & \(6144\times1\)\\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{(b)}: For this particular problem:
+
+\begin{equation}
+\textbf{M}=\left\{
+\begin{array}{*{13}c}
+Y_{00}^e(\hat{\Omega}_1)  & Y_{10}^e(\hat{\Omega}_1) & Y_{11}^o(\hat{\Omega}_1) & Y_{11}^e(\hat{\Omega}_1) & Y_{20}^e(\hat{\Omega}_1) & Y_{21}^o(\hat{\Omega}_1) & Y_{21}^e(\hat{\Omega}_1) & Y_{22}^o(\hat{\Omega}_1) & Y_{22}^e(\hat{\Omega}_1)\\
+Y_{00}^e(\hat{\Omega}_2)  & Y_{10}^e(\hat{\Omega}_2) & Y_{11}^o(\hat{\Omega}_2) & Y_{11}^e(\hat{\Omega}_2) & Y_{20}^e(\hat{\Omega}_2) & Y_{21}^o(\hat{\Omega}_2) & Y_{21}^e(\hat{\Omega}_2) & Y_{22}^o(\hat{\Omega}_2) & Y_{22}^e(\hat{\Omega}_2)\\
+Y_{00}^e(\hat{\Omega}_3)  & Y_{10}^e(\hat{\Omega}_3) & Y_{11}^o(\hat{\Omega}_3) & Y_{11}^e(\hat{\Omega}_3) & Y_{20}^e(\hat{\Omega}_3) & Y_{21}^o(\hat{\Omega}_3) & Y_{21}^e(\hat{\Omega}_3) & Y_{22}^o(\hat{\Omega}_3) & Y_{22}^e(\hat{\Omega}_3)\\
+Y_{00}^e(\hat{\Omega}_4)  & Y_{10}^e(\hat{\Omega}_4) & Y_{11}^o(\hat{\Omega}_4) & Y_{11}^e(\hat{\Omega}_4) & Y_{20}^e(\hat{\Omega}_4) & Y_{21}^o(\hat{\Omega}_4) & Y_{21}^e(\hat{\Omega}_4) & Y_{22}^o(\hat{\Omega}_4) & Y_{22}^e(\hat{\Omega}_4)\\
+Y_{00}^e(\hat{\Omega}_5)  & Y_{10}^e(\hat{\Omega}_5) & Y_{11}^o(\hat{\Omega}_5) & Y_{11}^e(\hat{\Omega}_5) & Y_{20}^e(\hat{\Omega}_5) & Y_{21}^o(\hat{\Omega}_5) & Y_{21}^e(\hat{\Omega}_5) & Y_{22}^o(\hat{\Omega}_5) & Y_{22}^e(\hat{\Omega}_5)\\
+Y_{00}^e(\hat{\Omega}_6)  & Y_{10}^e(\hat{\Omega}_6) & Y_{11}^o(\hat{\Omega}_6) & Y_{11}^e(\hat{\Omega}_6) & Y_{20}^e(\hat{\Omega}_6) & Y_{21}^o(\hat{\Omega}_6) & Y_{21}^e(\hat{\Omega}_6) & Y_{22}^o(\hat{\Omega}_6) & Y_{22}^e(\hat{\Omega}_6)\\
+Y_{00}^e(\hat{\Omega}_7)  & Y_{10}^e(\hat{\Omega}_7) & Y_{11}^o(\hat{\Omega}_7) & Y_{11}^e(\hat{\Omega}_7) & Y_{20}^e(\hat{\Omega}_7) & Y_{21}^o(\hat{\Omega}_7) & Y_{21}^e(\hat{\Omega}_7) & Y_{22}^o(\hat{\Omega}_7) & Y_{22}^e(\hat{\Omega}_7)\\
+Y_{00}^e(\hat{\Omega}_8)  & Y_{10}^e(\hat{\Omega}_8) & Y_{11}^o(\hat{\Omega}_8) & Y_{11}^e(\hat{\Omega}_8) & Y_{20}^e(\hat{\Omega}_8) & Y_{21}^o(\hat{\Omega}_8) & Y_{21}^e(\hat{\Omega}_8) & Y_{22}^o(\hat{\Omega}_8) & Y_{22}^e(\hat{\Omega}_8)\\
+\end{array}\right\}
+\end{equation}
+
+Then, matrix \circled{3} is assembled by aligning these \(\textbf{M}\) matrices along the diagonal, as shown in Eq. \eqref{eq:MatrixEquationProblem1}. The scattering matrix \(\textbf{S}\) is comprised of scattering matrices \(\textbf{S}_{gg^{'}}\), and is shown in Eq. \eqref{eq:MatrixEquationProblem1}. One of these scattering matrices is, for example:
+
+\begin{equation}
+\textbf{S}_{21}=\begin{bmatrix}
+\Sigma_{s0}^{21} & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0& \Sigma_{s1}^{21}  & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0& 0 & \Sigma_{s1}^{21}  & 0 & 0 & 0 & 0 & 0 & 0\\
+0& 0 & 0 & \Sigma_{s1}^{21}  & 0 & 0 & 0 & 0 & 0\\
+0& 0 & 0 & 0 & \Sigma_{s2}^{21}  & 0 & 0 & 0 & 0\\
+0& 0 & 0 & 0 & 0 & \Sigma_{s2}^{21}  & 0 & 0 & 0\\
+0& 0 & 0 & 0 & 0 & 0 & \Sigma_{s2}^{21}  & 0 & 0\\
+0& 0 & 0 & 0 & 0 & 0 & 0 & \Sigma_{s2}^{21} & 0\\
+0& 0 & 0 & 0 & 0 & 0 & 0 & 0 & \Sigma_{s2}^{21}\\
+\end{bmatrix}
+\end{equation}
+
+The vector of unknowns is:
+
+\begin{equation}
+\Psi=\begin{bmatrix}\Psi_1 & \Psi_2 & \Psi_3\end{bmatrix}
+\end{equation}
+
+where, for example, 
+
+\begin{equation}
+\Psi_1=\begin{bmatrix}\psi_1^1 & \psi_2^1 & \psi_3^1 & \psi_4^1 & \psi_5^1 & \psi_6^1 & \psi_7^1 & \psi_8^1
+\end{bmatrix}
+\end{equation}
+
+where the subscripts indicates the angle, and the superscript indicates the energy group. The vector of flux moments is:
+
+\begin{equation}
+\Phi=\begin{bmatrix}\Phi_1 & \Phi_2 & \Phi_3\end{bmatrix}
+\end{equation}
+
+where, for example,
+
+\begin{equation}
+\Phi_1=\begin{bmatrix}
+e_{00}^1 & e_{10}^1 & o_{11}^1 & e_{11}^1 & e_{20}^1 & o_{21}^1 & e_{21}^1 & o_{22}^1 & e_{22}^1
+\end{bmatrix}^T
+\end{equation}
+
+where the superscript indicates the energy group. The moments \(e\) and \(o\) are defined in Eq. \eqref{eq:FluxMoments31}.\newline
+
+\textbf{(c)}: 
 
 \section{Appendix}
 This section contains all the code used for each question. 
