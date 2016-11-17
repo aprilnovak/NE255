@@ -379,11 +379,13 @@ And for the equation in terms of \(\Psi\):
 \textbf{L}\Psi=\textbf{M}\textbf{S}\textbf{D}^{-1}\Psi+\textbf{M}q_e\quad\rightarrow\quad(\textbf{L}-\textbf{M}\textbf{S}\textbf{D}^{-1})\Psi=\textbf{M}q_e
 \end{equation}
 
+\circled{2}: This question implements a Jacobi solver to create a multigroup transport solver using the Weighted Diamond Difference (WDD) code developed from the previous assignment. This code from the previous assignment is used to perform the within-group solves for the angular flux in the \(\pm0.2,\pm0.5,\pm0.7\) directions. Within each of these iterations, the scattering source within each group (angle to angle) is iteratively updated. Then, outside of each within-group calculation, the overall group source is updated. 
+
 \section{Appendix}
 This section contains all the code used for each question. 
-\begin{comment}
-\subsection{Question 3, parts (a) and (b)}
-\lstinputlisting[language=Matlab]{Q3.m}
-\end{comment}
+
+\subsection{Question 2}
+\lstinputlisting[language=Matlab]{Q2.m}
+
 
 \end{document}
