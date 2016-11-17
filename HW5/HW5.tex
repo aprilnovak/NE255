@@ -353,6 +353,32 @@ w_1Y_{22}^e & w_2Y_{22}^e & w_3Y_{22}^e & w_4Y_{22}^e & w_5Y_{22}^e & w_6Y_{22}^
 \end{bmatrix}
 \end{equation}
 
+\textbf{(d)}: Because the matrices involved in only this \(4\times4\) mesh are relatively large, none of them are directly formed so that zero entries do not need to be stored. Instead, all matrix-matrix or matrix-vector products are performed according to their indices. For instance, to multiply a \(n\times1\) vector \(V\) by a \(n\times n\) matrix \(M\) to give a resulting vector \(r\), each component of \(r\) would be dictated by:
+
+\begin{equation}
+r_i=\sum_{j=1}^nM_{ij}V_j
+\end{equation}
+
+and so on for the matrix multiplication. Avoiding storage of the matrices is a huge advantage, since a majority of their contents are zero anyways, and for iterative solution methods, it is common practice to take advantage of the fact that the matrix does not need to be performed to further reduce the runtime.\newline
+
+\textbf{(e)}: To get a matrix system entirely in terms of \(\Psi\), begin with the operator form:
+
+\begin{equation}
+\textbf{L}\Psi=\textbf{M}\textbf{S}\Phi+\textbf{M}q_e
+\end{equation}
+
+and insert \(\Psi=\textbf{D}\Phi\). This can transform the above equation either into an equation for \(\Phi\) or \(\Psi\). I'm not sure which approach is done in practice, so I'll write both forms:
+
+\begin{equation}
+\textbf{L}\textbf{D}\Phi=\textbf{M}\textbf{S}\Phi+\textbf{M}q_e\quad\rightarrow\quad(\textbf{L}\textbf{D}-\textbf{M}\textbf{S})\Phi=\textbf{M}q_e
+\end{equation}
+
+And for the equation in terms of \(\Psi\):
+
+\begin{equation}
+\textbf{L}\Psi=\textbf{M}\textbf{S}\textbf{D}^{-1}\Psi+\textbf{M}q_e\quad\rightarrow\quad(\textbf{L}-\textbf{M}\textbf{S}\textbf{D}^{-1})\Psi=\textbf{M}q_e
+\end{equation}
+
 \section{Appendix}
 This section contains all the code used for each question. 
 \begin{comment}
