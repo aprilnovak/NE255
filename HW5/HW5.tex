@@ -89,7 +89,7 @@
 \setcounter{tocdepth}{4}
 \begin{document}
 
-\textbf{NE 255: HW5}1, 2\hfill April Novak\newline
+\textbf{NE 255: HW5}\hfill April Novak\newline
 
 \circled{1} The \(S_N\) form of the neutron transport equation is:
 
@@ -385,7 +385,7 @@ And for the equation in terms of \(\Psi\):
 \text{group source}=\sum_{g^{'}=1}^G\Sigma_s(g^{'}\rightarrow g)\psi_{g^{'}}
 \end{equation}
 
-using the same set of quadrature rules as from the previous assignment (note: not a real quadrature set, but am using this from the previous assignment). Fig. \ref{fig:1} shows the scalar fluxes obtained using this multigroup solver. 
+using the same set of quadrature rules as from the previous assignment (note: not a real quadrature set, but am using this from the previous assignment). Fig. \ref{fig:1} shows the scalar fluxes obtained using this multigroup solver. The convergence of the energy iteration was evaluated based on a comparison of the group energy sources (from scattering amongst energy sources) and the previous group energy sources. All three fluxes satisfy the reflective boundary condition, and the accuracy is difficult to judge, except that the relative magnitudes of the fluxes does scale with their total cross sections, while I would expect that downscattering would lead the group 3 flux to have a higher magnitude.
 
 \begin{figure}[H]
   \centering
