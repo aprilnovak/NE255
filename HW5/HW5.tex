@@ -379,7 +379,20 @@ And for the equation in terms of \(\Psi\):
 \textbf{L}\Psi=\textbf{M}\textbf{S}\textbf{D}^{-1}\Psi+\textbf{M}q_e\quad\rightarrow\quad(\textbf{L}-\textbf{M}\textbf{S}\textbf{D}^{-1})\Psi=\textbf{M}q_e
 \end{equation}
 
-\circled{2}: This question implements a Jacobi solver to create a multigroup transport solver using the Weighted Diamond Difference (WDD) code developed from the previous assignment. This code from the previous assignment is used to perform the within-group solves for the angular flux in the \(\pm0.2,\pm0.5,\pm0.7\) directions. Within each of these iterations, the scattering source within each group (angle to angle) is iteratively updated. Then, outside of each within-group calculation, the overall group source is updated. 
+\circled{2}: This question implements a Jacobi solver to create a multigroup transport solver using the Weighted Diamond Difference (WDD) code developed from the previous assignment. This code from the previous assignment is used to perform the within-group solves for the angular flux in the \(\pm0.2,\pm0.5,\pm0.7\) directions. Within each of these iterations, the scattering source within each group (angle to angle) is iteratively updated. Then, outside of each within-group calculation, the overall group source is updated. I assume that the right boundary condition is kept as a reflective boundary condition, since this was performed in the previous assignment (and we're not given a condition there). I also assumed that the incoming flux for group 1 was evenly split amongst the three different angles. The group source is updated according to:
+
+\begin{equation}
+\text{group source}=\sum_{g^{'}=1}^G\Sigma_s(g^{'}\rightarrow g)\psi_{g^{'}}
+\end{equation}
+
+using the same set of quadrature rules as from the previous assignment (note: not a real quadrature set, but am using this from the previous assignment). Fig. \ref{fig:1} shows the scalar fluxes obtained using this multigroup solver. 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=12cm]{ScalarFlux_3Group.jpg} % versioned
+  \caption{Scalar flux for the three energy groups.}
+  \label{fig:1}
+\end{figure}
 
 \section{Appendix}
 This section contains all the code used for each question. 
