@@ -1,0 +1,897 @@
+\documentclass{beamer}
+
+\mode<presentation>
+{
+  \usetheme{Madrid}
+  \usecolortheme{default}
+  \usefonttheme{serif}
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{caption}[numbered]
+}
+
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[version=3]{mhchem}
+
+\usepackage{pgfpages}
+\usepackage{xcolor}
+\usepackage{esvect}
+\usepackage{graphicx}
+\usepackage[compatibility=false]{caption}
+\usepackage{subcaption}
+\usepackage{soul}
+
+
+\pgfpagesuselayout{resize to}[%
+  physical paper width=8in, physical paper height=6in]
+
+% for circled numbers
+\usepackage{tikz}
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw,inner sep=2pt] (char) {#1};}}
+
+\title[PRONGHORN]{Streamline-Upwind Petrov-Galerkin Stabilization in PRONGHORN}
+\author{April Novak}
+\institute{UC Berkeley}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+\begin{enumerate}
+\item What is PRONGHORN?
+	\begin{itemize}
+		\item Why MOOSE?
+		\item Why PRONGHORN?
+	\end{itemize}
+\item The Navier-Stokes equations
+\item Why do we need to stabilize these equations?
+\end{enumerate}
+\end{frame}
+
+\section{What is PRONGHORN?}
+
+\begin{frame}{What is PRONGHORN?}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\linewidth]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/PronghornAnimal.pdf}
+\end{figure}
+
+\begin{itemize}
+  \item Porous-media Computational Fluid Dynamics (CFD) finite element code
+  \item Developed on the MOOSE framework
+\end{itemize}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Why MOOSE?}
+
+\begin{itemize}
+  \item Develop \textit{modern} nuclear software
+  \begin{itemize}
+  	\item Object oriented C++ == high level of code re-use
+	\item Robust version control and testing framework
+  \end{itemize}
+  \item Finite element method is a very robust numerical method
+  \item Uses State-of-the-Art PETSc nonlinear solver
+  \begin{itemize}
+  	\item Fully implicit, fully explicit, continuous Galerkin, discontinuous Galerkin...
+  \end{itemize}
+  \item Automatically parallel
+  \item Dimension-agnostic code
+  \item Modular structure simplifies development and code-sharing
+  \item Designed for easy multiphysics simulations
+\end{itemize}
+
+\end{frame}
+
+%%%%%
+
+\section{Why PRONGHORN?}
+
+\begin{frame}{Why porous media?}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\linewidth]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/TMSR_closeup.pdf}
+\caption{Close-up view of pebble mesh in a small test reactor.}
+\label{fig:TMSRmesh}
+\end{figure}
+
+\begin{enumerate}
+\item The mesh resolution needed makes the simulation \textit{very} expensive (\(\approx10^10\) elements)
+\item Imprecise knowledge of the physical structure
+\end{enumerate}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Why porous media?}
+
+\begin{itemize}
+\item Instead of high-fidelity computation, just compute averaged quantities!
+\item Provides an intermediate point between very detailed CFD and 1-D systems-level codes such as RELAP-7\newline
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{.25\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/NonPorousMesh.pdf}
+  \caption{Non-porous media model}
+\end{subfigure}
+\begin{subfigure}{.25\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/PorousMesh.pdf}
+  \caption{Porous media model}
+\end{subfigure}
+\caption{Difference between a mesh for (a) generic CFD calculations (no boundary layer mesh shown) and (b) a porous media model.}
+\end{figure}
+
+\end{frame}
+
+%%%%%
+
+\section{Why PRONGHORN?}
+
+\begin{frame}{Why PRONGHORN?}
+
+\begin{itemize}
+\item Began development in 2009 because existing simulation tools for HTGRs lacked flexibility and high levels of accuracy because they tend to:
+	\begin{itemize}
+		\item Use the finite difference method, which requires structured meshes and is not very flexible
+		\item Solve in 2-D or even 1-D
+		\item Be hard-wired for helium or specific geometries
+		\item Neglect difficult numerical terms such as advection terms
+		\item Use older programming languages such as FORTRAN
+	\end{itemize}
+\item Currently being rewritten from the ground up to improve its physical models
+\end{itemize}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{The Navier-Stokes Equations}
+
+\begin{itemize}
+\item PRONGHORN solves the porous-media form of the compressible, inviscid Navier-Stokes equations (a.k.a. the Euler equations)
+\end{itemize}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{The Navier-Stokes Equations}
+\small
+\begin{equation}
+\begin{aligned}
+\frac{\partial\rho}{\partial t} + \nabla\cdot(\rho\vv{V})=&\ 0\\
+\\
+\rho\frac{\partial\vv{V}}{\partial t}+\nabla\cdot(\rho\vv{V}\otimes\vv{V})-\rho \vv{g}+\nabla P \quad&\\
+-\nabla\cdot\left\lbrack\mu\left(\nabla V_i+(\nabla V_i)^T\right)-\frac{2\mu}{3}\nabla\cdot\vv{V}\textbf{I}\right\rbrack=&\ 0\\
+\\
+\frac{\partial (\rho E)}{\partial t}+\nabla\cdot(\rho h\vv{V})-\rho \vv{g}\cdot\vv{V}\quad&\\
+-\nabla\cdot\left\lbrack\vv{V}\left(\mu\left(\nabla V_i+(\nabla V_i)^T\right)-\frac{2\mu}{3}\nabla\cdot\vv{V}\textbf{I}\right)\right\rbrack&\quad\\
+-\nabla\cdot(k\nabla T)+\alpha(T-T_\infty)-q=&\ 0\\
+\end{aligned}
+\end{equation}
+\normalsize
+\begin{tabular}{l l l l}
+\(\rho\) & density & \(\vv{V}\) & velocity\\
+\(\vv{g}\) & gravity acceleration vector\\
+\(P\) & pressure\\
+\(\mu\) & viscosity\\
+\(\textbf{I}\) & identity matrix\\
+\(E\) & total energy\\
+\(h\) & enthalpy\\
+\(k\) & thermal conductivity\\
+\(T\) & temperature\\
+\(\alpha\) & heat transfer coefficient\\
+\(q\) & volumetric heat source\\
+\end{tabular}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{WOLVERINE Governing Equations}
+
+For channel-type reactors, we solve the following momentum equation, which \textit{highly anisotropic} \textbf{K}:
+
+\begin{equation}
+\frac{\partial(\epsilon\rho_f\vv{V})}{\partial t}+\nabla\cdot(\epsilon\rho_f\vv{V}\vv{V})=-\nabla(\epsilon P)-\mu \textbf{K}^{-1}\epsilon\vv{v}+\epsilon\rho_f\vv{g}
+\end{equation}
+
+But for pebble beds, we can make a simplification to:
+
+\begin{equation}
+\frac{\partial(\epsilon\rho_f\vv{V})}{\partial t}+\nabla\cdot(\epsilon\rho_f\vv{V}\vv{V})=-\nabla(\epsilon P)-W\rho_f\vv{V}+\epsilon\rho_f\vv{g}
+\end{equation}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{WOLVERINE Governing Equations}
+
+The generic, conservative form of the energy equation is:
+
+\begin{equation}
+\frac{\partial(\color{red}\rho\color{black} E)}{\partial t}+\nabla\cdot(\color{red}\rho h\color{black}\vv{V})+\nabla\cdot(\color{red}k\color{black}\nabla T)- \color{red}\rho\color{black}\vv{g}\cdot\vv{V}+\alpha(T-T_\infty)-\color{red}q\color{black}=0
+\end{equation}
+
+For the fluid the energy equation is:
+
+\begin{equation}
+\frac{\partial(\color{red}\epsilon\rho_f\color{black} E)}{\partial t}+\nabla\cdot(\color{red}\epsilon h_f\rho_f\color{black}\vv{V})+\nabla\cdot(\color{red}\epsilon k_f\color{black}\nabla T_f) -\color{red}\epsilon\rho_f\color{black} \vv{g}\cdot\vv{V}+\alpha(T_f-T_s)-\color{red}q_f\color{black}=0
+\end{equation}
+
+And for the solid, the energy equation is:
+
+\begin{equation}
+\frac{\partial}{\partial t} \left((1-\epsilon)\rho_s C_pT_s\right)-\nabla\cdot \color{red}\kappa_s\color{black}\nabla T_s+\alpha(T_s-T_f)-\color{red}q_s\color{black}=0
+\end{equation}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Summary of Equations}
+
+The variables that we solve for are density \color{red}\(\rho_f\)\color{black}, momentum \color{red}\(\vv{\eta}=\rho_f\vv{V}\)\color{black}, solid temperature \color{red}\(T_s\)\color{black}, and fluid energy \color{red}\(\gamma_f=\rho_fE\)\color{black}.
+
+\begin{equation}
+\begin{aligned}
+\epsilon\frac{\partial (\color{red}\rho_f\color{black})}{\partial t} + \nabla\cdot(\epsilon\rho_f\vv{V})=0\\
+\epsilon\frac{\partial(\color{red}\rho_f\vv{V}\color{black})}{\partial t}+\nabla\cdot(\epsilon\color{red}\rho_f\vv{V}\color{black}\vv{V})+\nabla(\epsilon P)+W\color{red}\rho_f\vv{V}\color{black}-\epsilon\rho_f\vv{g}=0 \\
+(1-\epsilon)\frac{\partial}{\partial t} \left(\rho_s C_p\color{red}T_s\color{black}\right)-\nabla\cdot \kappa_s\nabla \color{red}T_s\color{black}+\alpha(\color{red}T_s\color{black}-T_f)-q_s=0\\
+\epsilon\frac{\partial(\color{red}\rho_f E\color{black})}{\partial t}+\nabla\cdot(\epsilon h_f\rho_f\vv{V})-\nabla\cdot(\epsilon k_f\nabla T_f) -\quad\\
+ \epsilon\rho_f \vv{g}\cdot\vv{V}+\alpha(T_f-T_s)-q_f=0\\
+\end{aligned}
+\end{equation}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Differences between WOLVERINE and PRONGHORN}
+
+\textbf{Continuity equation:}
+
+\begin{tabular}{l l}
+Prong. & \(\frac{\epsilon}{R}\frac{\partial}{\partial t}\left(\frac{ P}{T_f}\right)+\nabla\cdot\left(-\frac{\epsilon^2}{W}\nabla P-\frac{\epsilon^2 P\vv{g}}{WRT_f}\right)=0\)\\
+Wolv. & \(\epsilon\frac{\partial\rho_f}{\partial t} \hspace{0.9 cm}+ \nabla\cdot(\epsilon\rho_f\vv{V})\hspace{2.06 cm}=0\)\\\newline
+\end{tabular}
+
+\textbf{Momentum equation:}
+
+\begin{tabular}{l l}
+Prong. & \hspace{4.56 cm}\(\epsilon\nabla P+W\rho_f\vv{V}-\epsilon\rho_f\vv{g}=0\)\\
+Wolv. & \(\color{blue}\epsilon\frac{\partial(\rho_f\vv{V})}{\partial t}+\nabla\cdot(\epsilon\rho_f\vv{V}\vv{V})\color{black}+\nabla(\epsilon P)+W\rho_f\vv{V}-\epsilon\rho_f\vv{g}=0 \)\\\newline
+\end{tabular}
+
+\textbf{Fluid energy equation:}
+
+\begin{tabular}{l l}
+Prong. &  \(\epsilon\frac{\partial}{\partial t} \left(\rho_f C_pT_f\right)+\nabla\cdot(\epsilon\rho_f C_p\vv{V}T_f)-\nabla\cdot\epsilon k_f\nabla T_f+\alpha(T_f-T_s)=0\)\\
+Wolv. & \(\epsilon\frac{\partial}{\partial t}(\rho_f E)\hspace{0.64 cm}+\nabla\cdot(\epsilon h_f\rho_f\vv{V})\hspace{0.42 cm}-\nabla\cdot\epsilon k_f\nabla T_f +\alpha(T_f-T_s)\)\quad\\
+& \hfill\(\color{blue}- \epsilon\rho_f \vv{g}\cdot\vv{V}\color{black}-\color{blue}q_f\color{black}=0\)\\\newline
+\end{tabular}
+
+\textbf{Solid energy equation:}
+
+\begin{tabular}{l l}
+Prong. & \((1-\epsilon)\frac{\partial}{\partial t} \left(\rho_s C_pT_s\right)-\nabla\cdot \kappa_s\nabla T_s+\alpha(T_s-T_f)-q_s=0\)\\
+Wolv. & \((1-\epsilon)\frac{\partial}{\partial t} \left(\rho_s C_pT_s\right)-\nabla\cdot \kappa_s\nabla T_s+\alpha(T_s-T_f)-q_s=0\)\\
+\end{tabular}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Equations of State}
+
+\begin{itemize}
+\item A major motivation for reconstructing PRONGHORN is to use the EOS system in RELAP-7.
+\item To use this system, we have to solve for \(\rho_f\) and \(\rho_fE\) as the variables
+\end{itemize}
+
+\begin{equation}
+\begin{aligned}
+P=P(\rho_f,\rho_fE)\\
+T=T(\rho_f,\rho_fE)\\
+\end{aligned}
+\end{equation}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Equations of State}
+
+\begin{itemize}
+\item User selects from one of several EOSs:
+	\begin{itemize}
+		\item Ideal gas EOS:
+		\begin{equation}
+		\begin{aligned}
+		P=(\gamma-1)\rho_f \rho_fE\\
+		T=\frac{e}{C_v}\\
+		\end{aligned}
+		\end{equation}
+		%
+		\item Stiffened gas (good for liquids too) EOS:
+		\begin{equation}
+		\begin{aligned}
+		P=(\gamma-1)\rho_f(\rho_fE-q)-\gamma P_\infty\\
+		T=\frac{1}{C_v}\left(e-q-\frac{P_\infty}{\rho_f}\right)\\
+		\end{aligned}
+		\end{equation}
+		%
+		\item Isentropic stiffened gas EOS
+		\item Linear EOS
+		\item Barotropic EOS
+		\item ...
+	\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Code Verification}
+
+\begin{itemize}
+\item Code verification is performed in two manners in WOLVERINE:
+	\begin{itemize}
+		\item Method of Manufactured Solutions (MMS)
+		\item Theoretical convergence rates
+	\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Method of Manufactured Solutions}
+
+Suppose I want to check if a kernel I coded to solve the diffusion equation works in 1-D:
+
+\begin{equation}
+-\frac{d^2 u}{dx^2}=0
+\end{equation}
+
+Suppose I want to obtain a solution of \(\sin{(4\pi x)}\):
+
+\begin{equation}
+\begin{aligned}
+-\frac{d^2}{dx^2}(\sin{(4\pi x)})\neq 0\\
+-\frac{d^2}{dx^2}(\sin{(4\pi x)})-f= 0\\
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+f=16\pi^2\sin{(4\pi x)}
+\end{equation}
+
+So, the equation to solve in the input file is:
+
+\begin{equation}
+-\frac{d^2u}{dx^2}-16\pi^2\sin{(4\pi x)}= 0
+\end{equation}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Method of Manufactured Solutions}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.4\linewidth]{figures/ExampleMMS.pdf}
+\caption{Correct kernel implementation, shown over \(0\leq x\leq 1\) and \(0\leq y \leq 1\).}
+\end{figure}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Method of Manufactured Solutions}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{.25\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{figures/ExampleIncorrectMMS1.pdf}
+\end{subfigure}
+\begin{subfigure}{.25\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{figures/ExampleIncorrectMMS2.pdf}
+\end{subfigure}
+\begin{subfigure}{.25\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{figures/ExampleIncorrectMMS4.pdf}
+\end{subfigure}
+\begin{subfigure}{.25\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{figures/ExampleIncorrectMMS6.pdf}
+\end{subfigure}
+\begin{subfigure}{.25\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{figures/ExampleIncorrectMMS5.pdf}
+\end{subfigure}
+  \begin{subfigure}{.25\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{figures/ExampleIncorrectMMS3.pdf}
+\end{subfigure}
+\caption{Incorrect kernel implementation}
+\end{figure}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Convergence rates}
+
+\begin{itemize}
+\item FE codes have theoretical rates for how fast error reduces as a function of the mesh refinement and time step size
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=7cm]{figures/convergence_conservative_time_SUPG.pdf}
+  \caption{\(L^2\) error, integrated by the trapezoid rule, as a function of \(\Delta t\) for the \texttt{ConservativeTime} kernel.}
+  \label{fig:convergence_conservative_time_SUPG}
+\end{figure}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Convergence rates}
+
+\begin{table}[H]
+\caption{Convergence rates for WOLVERINE non-SUPG time kernels.}
+\centering
+\begin{tabular}{l c c c c}
+\hline\hline
+Kernel  & BE & BDF2 & CN & DIRK\\ [0.5ex]
+\hline
+ConservativeTime 			 & 0.98 & 1.94 & 2.00 & 1.93\\
+SolidEnergyTime 			 &  &  &  & \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\caption{Convergence rates for WOLVERINE SUPG time kernels.}
+\centering
+\begin{tabular}{l c c c c}
+\hline\hline
+Kernel & BE & BDF2 & CN & DIRK\\ [0.5ex]
+\hline
+ConservativeTimeSUPG 			 & 0.98 & 1.97 & 2.00 & 1.99\\
+SolidEnergyTimeSUPG 			 &  &  &  & \\
+\hline
+\end{tabular}
+\end{table}
+
+\end{frame}
+
+%%%%%
+
+%%%%%
+
+\begin{frame}{Convergence rates}
+
+\begin{table}[H]
+\caption{Convergence rates for WOLVERINE non-SUPG kernels.}
+\centering
+\begin{tabular}{l c c}
+\hline\hline
+Kernel & Linear & Quadratic\\ [0.5ex]
+\hline
+ContinuityEqn 				 & 2.02	& 2.99\\
+MomConvectiveFlux 			 & 2.00	& 2.98\\
+MomPressureGradient 		 & 1.96 	& 2.98\\
+MomFrictionForce 			 & 2.02	& 2.90\\
+MomGravityForce 			 & 2.01	& 2.90\\
+SolidEnergyDiffusion 		 & &\\
+SolidFluidConvection 		 & &\\
+HeatSrc 					 & 2.01 	& 2.90\\
+FluidEnergyConvectiveFlux 	 & 2.00	& 2.98\\
+FluidEnergyDiffusion 		 & 2.00 	& 2.98\\
+FluidEnergyGravityForce 		 & 1.96	& 2.97\\
+FluidSolidConvection 		 & 1.96 	& 2.97\\
+\hline
+\end{tabular}
+\end{table}
+
+\end{frame}
+
+\begin{frame}{Testing Framework}
+
+\begin{itemize}
+\item MOOSE has an extensible testing framework to protect me from:
+	\begin{itemize}
+		\item Myself
+		\item Other WOLVERINE developers (none yet)
+		\item Changes to MOOSE
+	\end{itemize}
+\item Each ``test'' runs a saved input file, and compares the output to a saved output file. If the results are identical, then the WOLVERINE objects involved still function correctly
+\item WOLVERINE currently has 50 tests
+\end{itemize}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Testing Framework}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=7cm]{figures/TestingExample.pdf}
+  \caption{All tests run successfully}
+\end{figure}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Testing Framework}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=7cm]{figures/BadTestingExample.pdf}
+  \caption{Some tests fail due to a change to source code}
+\end{figure}
+
+\end{frame}
+
+%%%%%
+
+\section{SUPG Stabilization}
+
+\begin{frame}{Stabilization}
+
+\begin{itemize}
+\item All fluids codes that contain advective terms require some form of stabilization
+\item Advective systems are inherently difficult to numerically solve
+\end{itemize}
+
+\begin{equation}
+\begin{aligned}
+u \frac{dT}{dx}=k\frac{d^2T}{dx^2}\\
+T(0)=0 \textrm{\ and\ } T(L)=1\\
+\end{aligned}
+\end{equation}
+
+The exact solution is:
+
+\begin{equation}
+T(x)=\frac{1-\exp\left(Pe \frac{x}{L}\right)}{1-\exp(Pe)}
+\end{equation}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Stabilization}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=6.5cm]{figures/1D_convection_diffusion.pdf}
+  \caption{Solutions to the 1-D advection-diffusion problem for various \(Pe\).}
+\end{figure}
+
+\begin{equation}
+Pe=\frac{\nabla\cdot(\vv{V}T)}{k_f\nabla^2 T}= \frac{Vh_e}{k_f}
+\end{equation}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Stabilization}
+
+\begin{itemize}
+\item The continuity, momentum, and fluid energy equations have no diffusion at all \(\rightarrow Pe=\infty\)!
+\end{itemize}
+
+\begin{equation}
+\begin{aligned}
+\epsilon\frac{\partial (\color{red}\rho_f\color{black})}{\partial t} + \nabla\cdot(\epsilon\rho_f\vv{V})=0\\
+\epsilon\frac{\partial(\color{red}\rho_f\vv{V}\color{black})}{\partial t}+\nabla\cdot(\epsilon\color{red}\rho_f\vv{V}\color{black}\vv{V})+\nabla(\epsilon P)+W\color{red}\rho_f\vv{V}\color{black}-\epsilon\rho_f\vv{g}=0 \\
+\epsilon\frac{\partial(\color{red}\rho_f E\color{black})}{\partial t}+\nabla\cdot(\epsilon h_f\rho_f\vv{V})-\nabla\cdot(\epsilon k_f\nabla T_f) -\quad\\
+ \epsilon\rho_f \vv{g}\cdot\vv{V}+\alpha(T_f-T_s)-q_f=0\\
+\end{aligned}
+\end{equation}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Without Stabilization...}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=6cm]{figures/continuity_eqn_no_stabilization.pdf}
+  \caption{Solution to the continuity equation with no stabilization - the result should be \(\rho=\sin{(2\pi x)}\). Dirichlet BCs are used on all boundaries.}
+\end{figure}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Stabilization Options}
+
+\begin{itemize}
+\item Simply add a diffusion kernel = isotropic diffusion
+	\begin{itemize}
+		\item But this distorts the physics
+		\item Produces excessive over-diffusion
+	\end{itemize}
+\item Modify the quadrature rule
+\item \textbf{Modify the shape functions \(\psi\)}
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=5.5cm]{figures/1DShapeFunctions.pdf}
+  \caption{Basic Petrov-Galerkin upwinding shape functions for a 1-D element.}
+\end{figure}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Streamline Upwind Petrov-Galerkin (SUPG) Stabilization}
+
+\begin{itemize}
+\item Add a component to the shape functions \(\psi\) that is proportional to the amount of advection
+\end{itemize}
+
+\begin{equation}
+\tilde{\psi}=\psi+\tau\vv{V}\cdot\nabla \psi
+\end{equation}
+
+\begin{equation}
+\tau=\frac{h_e}{2\|\vv{V}\|_2}
+\end{equation}
+
+\end{frame}
+
+%%%%%
+\begin{frame}{Streamline Upwind Petrov-Galerkin (SUPG) Stabilization}
+
+\begin{itemize}
+\item Why does this work?
+\end{itemize}
+
+\begin{equation}
+\tilde{\psi}=\psi+\tau\vv{V}\cdot\color{red}\nabla \psi\color{black}
+\end{equation}
+
+Recall that the weak form for the \(\nabla^2 T\) (diffusion) kernel is:
+
+\begin{equation}
+\int_{\Omega}^{}\color{green}\nabla T\color{black}\cdot\color{red}\nabla\psi\color{black} d\Omega
+\end{equation}
+
+The weak form for the \(\vv{V}\cdot\nabla T\) (advective) kernel is:
+
+\begin{equation}
+\int_{\Omega}^{}\vv{V}\cdot\nabla T\psi d\Omega\quad\rightarrow\quad\int_{\Omega}^{}\vv{V}\cdot\color{green}\nabla T\color{black}\left(\psi+\tau\vv{V}\cdot\color{red}\nabla \psi\color{black}\right) d\Omega
+\end{equation}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Streamline Upwind Petrov-Galerkin (SUPG) Stabilization}
+
+\begin{itemize}
+\item What makes stabilization difficult?
+	\begin{itemize}
+		\item We can't integrate terms by parts, so we obtain long chain rules
+		\item It's sometimes difficult to tell if it has been implemented correctly
+	\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Streamline Upwind Petrov-Galerkin (SUPG) Stabilization}
+
+\begin{itemize}
+\item For consistency, you need one SUPG kernel for each kernel in your system = 2x as many kernels to code
+\item As an example of the messiness for the \texttt{ContinuityEqnSUPG} kernel:
+\end{itemize}
+
+\begin{equation}
+\sum_{n_{el}}^{}\left(\tau\vv{V}\left\lbrack\epsilon\rho_f\nabla\cdot\vv{V}+\vv{V}\cdot\left(\epsilon\nabla\rho_f+\rho_f\nabla\epsilon\right)\right\rbrack,\nabla\psi\right)=0
+\end{equation}
+
+And the Jacobian is:
+
+\begin{equation}
+\begin{aligned}
+\left(\tau\vv{V}   \left\lbrack\frac{\partial}{\partial C_j}\left(\epsilon\rho_f\nabla\cdot\vv{V}\right)+\frac{\partial}{\partial C_j}\left(\vv{V}\cdot\epsilon\nabla\rho_f\right)+\frac{\partial}{\partial C_j}\left(\vv{V}\cdot\rho_f\nabla\epsilon\right)\right\rbrack,\nabla\psi\right)+\\
+  \left(\left\lbrack\tau\frac{\partial\vv{V}}{\partial C_j}+\vv{V}\frac{\partial\tau}{\partial C_j}\right\rbrack\left\lbrack\epsilon\rho_f\nabla\cdot\vv{V}+\vv{V}\cdot\epsilon\nabla\rho_f+\vv{V}\cdot\rho_f\nabla\epsilon\right\rbrack,\nabla\psi\right)=0\\
+\end{aligned}
+\end{equation}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{But it's Worth It!}
+
+\begin{enumerate}
+\item Stabilization gives you the correct results without modifying the physics
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{.425\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{figures/NoStabilization.pdf}
+  \caption{No stabilization}
+\end{subfigure}
+\begin{subfigure}{.425\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{figures/Stabilization.pdf}
+  \caption{Stabilization}
+\end{subfigure}
+\caption{Stabilization effect on obtaining the MMS solution of \(\rho=\sin{(2\pi x)}+5\). Dirichlet BCs are used on all boundaries.}
+\end{figure}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{But it's Worth It!}
+
+\begin{enumerate}
+  \setcounter{enumi}{1}
+\item Stabilization is much more forgiving to poorly-conditioned systems
+\item Stabilization gives you results 100-1000 times faster!
+	\begin{itemize}
+		\item Stabilization allows much larger time steps, reducing runtimes
+	\end{itemize}
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=7cm]{figures/runtime_ratio.pdf}
+  \caption{Ratio between the runtime without and with stabilization as a function of velocity magnitude for an end time of 10 seconds.}
+\end{figure}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{But it's Worth It!}
+
+\begin{enumerate}
+  \setcounter{enumi}{3}
+\item And the stabilization is super-convergent for linear elements!
+\end{enumerate}
+
+\begin{table}[H]
+\caption{Convergence rates for WOLVERINE SUPG kernels.}
+\centering
+\begin{tabular}{l c c}
+\hline\hline
+Kernel & Linear & Quadratic\\ [0.5ex]
+\hline
+ContinuityEqnSUPG 				 & 2.26 - 3.05  	& 2.94 - 3.03\\
+MomConvectiveFluxSUPG		 & 2.26 - 3.05  	& 2.94 - 3.03\\
+MomPressureGradientSUPG 		 & 2.30 - 3.05	& 2.94 - 3.03\\
+MomFrictionForceSUPG 			 & 2.32 - 3.01	& 2.94 - 2.95\\
+MomGravityForceSUPG 			 & 1.97 - 2.63	& 2.96 - 3.03\\
+SolidEnergyDiffusionSUPG 		 & &\\
+SolidFluidConvectionSUPG 		 & &\\
+HeatSrcSUPG 					 & 1.99 - 2.98	 & 2.94 - 3.02\\
+FluidEnergyConvectiveFluxSUPG 	 & &\\
+FluidEnergyDiffusionSUPG 		 & &\\
+FluidEnergyGravityForceSUPG 	 & &\\
+FluidSolidConvectionSUPG 		 & &\\
+\hline
+\end{tabular}
+\end{table}
+
+\end{frame}
+
+%%%%%
+
+\section{Future Work}
+
+\begin{frame}{Future Work}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{l c}
+\hline\hline
+Task & Completion Time\\ [0.5ex]
+\hline
+Complete all remaining non-SUPG kernels 						& 1 day\\
+Complete all remaining SUPG kernels 							& 2 weeks\\
+Incorporate pebble bed models for \(\epsilon, h, \kappa_s\), etc. 		& 1 month\\
+Incorporate Darcy's law for prismatic reactors 						& 1 day\\
+Incorporate prismatic models for \(\epsilon, h, \kappa_s\), etc. 			& 1 month\\
+& \\
+Perform code-to-code comparisons for validation					& ?\\
+Perform TH benchmarks										& 3 months\\
+Perform coupled TH/N benchmarks								& ?\\
+\end{tabular}
+\end{table}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{The ``M'' in MOOSE}
+
+\begin{itemize}
+\item Multiphysics simulations are (relatively) easy in MOOSE because:
+	\begin{itemize}
+		\item All MOOSE animals are finite-element based
+		\item MOOSE has the capability for both weak and tight coupling:
+			\begin{itemize}
+				\item \textbf{Weak}: Solve T/H code, send temperature to N. Solve N code, send power to T/H. Repeat until convergence at the time step.
+				\item \textbf{Tight}: Solve entire system of residuals at once. Move to next time step.
+			\end{itemize}
+		\item To couple two MOOSE animals, create 1 input file for each, and then link them together with some extra lines in the input file of the ``main'' App
+	\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+%%%%%
+
+\begin{frame}{Long-Term Multiphysics Goals}
+
+\begin{itemize}
+\item PRONGHORN: porous-media T/H
+\item RELAP-7: plant-scale simulation
+\item RATTLE\(\textrm{S}_N\)AKE: neutronics
+\item BISON: fuel performance
+\item GRIZZLY: materials aging and component degradation
+\item MARMOT: irradiation-induced microstructure evolution
+\end{itemize}
+
+\end{frame}
+
+%%%%%
+
+
+\begin{frame}{What Questions Do We Want to Answer?}
+
+\begin{itemize}
+\item How does the reactivity feedback influence transient behavior (PRONGHORN + RATTLE\(\textrm{S}_N\)AKE)?
+	\begin{itemize}
+		\item Reactivity coefficients and inherent feedback\newline
+	\end{itemize}
+\item How do the core physics interact with the entire reactor system (PRONGHORN + RATTLE\(\textrm{S}_N\)AKE + RELAP-7)?\newline
+\item How do non-constant material properties influence transient behavior (PRONGHORN + RATTLE\(\textrm{S}_N\)AKE + BISON)?
+	\begin{itemize}
+		\item \(k_{\textrm{graphite}}\) increases with \(T\)
+		\item \(k\) decreases with burnup, but those pebbles are lower power
+	\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+
+\end{document}
