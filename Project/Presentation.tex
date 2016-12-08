@@ -44,18 +44,12 @@
 \begin{frame}{Outline}
 \begin{enumerate}
 \item What is PRONGHORN?
-	\begin{itemize}
-		\item Why MOOSE?
-		\item Why PRONGHORN?
-	\end{itemize}
 \item The Navier-Stokes equations
 \item Why do we need to stabilize these equations?
 \item What are our stabilization options?
 \item SUPG stabilization
 \end{enumerate}
 \end{frame}
-
-\section{What is PRONGHORN?}
 
 \begin{frame}{What is PRONGHORN?}
 
@@ -66,27 +60,12 @@
 
 \begin{itemize}
   \item Porous-media Computational Fluid Dynamics (CFD) finite element code
-  \item Developed on the MOOSE framework
+  \item Developed on the MOOSE (Multiphysics Object-Oriented Simulation Environment) framework
 \end{itemize}
 
 \end{frame}
 
 %%%%%
-
-\begin{frame}{Why MOOSE (Multiphysics Object-Oriented Simulation Environment)?}
-
-\begin{itemize}
-  \item Develop \textit{modern} nuclear software
-  \item Using a robust numerical method (finite elements)
-  \item Using the State-of-the-Art PETSc nonlinear solver
-  \item For easy multiphysics simulations of advanced reactors
-\end{itemize}
-
-\end{frame}
-
-%%%%%
-
-\section{Why PRONGHORN?}
 
 \begin{frame}{Why porous media?}
 
@@ -98,7 +77,7 @@
 \end{figure}
 
 \begin{enumerate}
-\item The mesh resolution needed makes the simulation \textit{very} expensive (\(\approx10^{10}\) elements)
+\item The mesh resolution needed makes the simulation \textit{very} expensive
 \item Imprecise knowledge of the physical structure
 \end{enumerate}
 
@@ -176,7 +155,7 @@
 \item \textit{Highly} nonlinear due to convection terms
 	\begin{itemize}
 		\item You're not guaranteed a solution
-		\item No longer meet the ``Best Approximation Theorem'' - numerical results can be way off!
+		\item \textbf{No longer meet the ``Best Approximation Theorem''}
 	\end{itemize}
 \item 6 tightly-coupled equations
 	\begin{itemize}
@@ -185,8 +164,7 @@
 \item Unlike neutronics, it is actually better to neglect diffusive (viscous) effects
 	\begin{itemize}
 		\item Don't have to resolve boundary layers (no-slip condition)
-		\item Easier boundary conditions
-		\item \textbf{But then our equations become hyperbolic :(}
+		\item \textbf{But then our equations become hyperbolic}
 	\end{itemize}
 \end{itemize}
 
@@ -207,32 +185,9 @@
 \normalsize
 \begin{itemize}
 \item Neglect viscous forces
-\item \color{red}Extra terms\ \color{black} are added to account for frictional and form drag (think of spoilers on cars)
+\item \color{red}Extra terms\ \color{black} are added to account for frictional drag and form drag
 \end{itemize}
 
-\end{frame}
-
-%%%%%
-
-\section{SUPG Stabilization}
-
-\begin{frame}{Stabilization}
-
-\begin{itemize}
-\item All fluids codes that contain convective terms require some form of stabilization
-\end{itemize}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=5.5cm]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/1D_convection_diffusion.pdf}
-  \caption{Solutions to the 1-D advection-diffusion problem for various \(Pe\).}
-\end{figure}
-
-\small
-\begin{equation}
-Pe=\frac{\nabla\cdot(\vv{V}T)}{k_f\nabla^2 T}= \frac{Vh}{2k}
-\end{equation}
-\normalsize
 \end{frame}
 
 %%%%%
@@ -248,7 +203,7 @@ V\frac{d\phi}{dx}-k\frac{d^2\phi}{dx^2}=0
 \end{equation}
 
 \begin{itemize}
-\item If we assemble the global stiffness matrix and load vector, using linear Lagrange elements with the Bubnov-Galerkin method, we obtain:
+\item Assemble the global stiffness matrix and load vector, using linear Lagrange elements with the Bubnov-Galerkin method:
 \end{itemize}
 
 \begin{equation}
@@ -261,29 +216,29 @@ V\frac{d\phi}{dx}-k\frac{d^2\phi}{dx^2}=0
 \begin{bmatrix}0 \\ 0 \\ 0 \\ 0 \\ 0\end{bmatrix}
 \end{equation}
 
-where \(a=-Pe_{el}+1, b=Pe_{el}-1, c=-Pe_{el}-1, d=Pe_{el}+1\). 
+where \(a=-Pe+1, b=Pe-1, c=-Pe-1, d=Pe+1\). 
 
 \end{frame}
 
 %%%%%
 
-\begin{frame}
+\begin{frame}{Why are convective equations difficult to solve?}
 \begin{itemize}
 \item Then, an equation for a typical node is:
 
 \begin{equation}
 \label{eq:1D_nodal_eq}
-(-Pe_{el}-1)\phi_{a-1}+2\phi_a+(Pe_{el}-1)\phi_{a+1}=0
+(-Pe-1)\phi_{n-1}+2\phi_n+(Pe-1)\phi_{n+1}=0
 \end{equation}
 
 \item Assume a solution \(\phi=r^j\). This gives you two possible solutions:
 
 \begin{equation}
-\phi_j=1^j\quad\quad\text{or}\quad\quad\color{red}\phi_j=\left(-\frac{Pe_{el}+1}{Pe_{el}-1}\right)^j\color{black}
+\phi_j=1^j\quad\quad\text{or}\quad\quad\color{red}\phi_j=\left(-\frac{Pe+1}{Pe-1}\right)^j\color{black}
 \end{equation}
 
 \begin{equation}
-Pe_{el}\equiv\frac{Vh}{2k}=\frac{\text{velocity}\cdot\text{mesh spacing}}{2\cdot\text{diffusivity}}
+Pe\equiv\frac{Vh}{2k}=\frac{\text{velocity}\cdot\text{mesh spacing}}{2\cdot\text{diffusivity}}
 \end{equation}
 
 \end{itemize}
@@ -301,12 +256,12 @@ Pe_{el}\equiv\frac{Vh}{2k}=\frac{\text{velocity}\cdot\text{mesh spacing}}{2\cdot
 
 %%%%%
 
-\begin{frame}
+\begin{frame}{Without Stabilization...}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=7.5cm]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/continuity_eqn_no_stabilization.pdf}
-  \caption{Solution to the continuity equation with no stabilization - the result should be \(\rho=\sin{(2\pi x)}\).}
+  \includegraphics[width=6.5cm]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/continuity_eqn_no_stabilization.pdf}
+  \caption{Solution to the conservation of mass equation over \(0\leq x\leq 1, 0\leq y\leq 1\) with no stabilization - the result should be \(\rho=\sin{(2\pi x)}\).}
 \end{figure}
 
 \end{frame}
@@ -319,7 +274,7 @@ Pe_{el}\equiv\frac{Vh}{2k}=\frac{\text{velocity}\cdot\text{mesh spacing}}{2\cdot
 \item \textbf{The problem}: We don't want to excessively refine the mesh when we only care about engineering-scale results
 \item \textbf{The early-on solution(s)}
 	\begin{itemize}
-		\item Simply add some diffusion!
+		\item Simply add some diffusion
 		\item Modify the quadrature rule
 		\item Modify the shape functions
 	\end{itemize}
@@ -338,14 +293,13 @@ Pe_{el}\equiv\frac{Vh}{2k}=\frac{\text{velocity}\cdot\text{mesh spacing}}{2\cdot
 \begin{frame}{Streamline Upwind Petrov-Galerkin (SUPG) Stabilization}
 
 \begin{itemize}
-\item Earlier methods failed to realize how to extend what worked for specific cases to general, 3-D problems
-\item Hughes and Brooks (1982) developed a \textit{consistent} stabilization method (SUPG)
+\item Earlier methods were not consistent and didn't generalize to 3-D
+\item Hughes and Brooks (1982) figured out how to generalize early methods to 3-D
 	\begin{itemize}
-		\item Generalizes to 3-D
-		\item Consistent
+		\item \textbf{Consistent}
 		\item No over-diffusion - the solution is preserved
 	\end{itemize}
-\item The realization that a Petrov-Galerkin formulation could give good stabilizing results is one of the main reasons why anyone even tries to use finite elements for fluids applications
+\item The realization that a Petrov-Galerkin formulation could give good stabilizing results was critical to the continued use of finite elements for fluids applications
 \end{itemize}
 
 \end{frame}
@@ -377,23 +331,23 @@ where \(R(u)\) is the residual for the finite element solution \(u\).
 \begin{frame}{Streamline Upwind Petrov-Galerkin (SUPG) Stabilization}
 \begin{itemize}
 \item Why does this work?
-\end{itemize}
 
 \begin{equation}
 \tilde{\psi}=\psi+\tau\vv{V}\cdot\color{red}\nabla \psi\color{black}
 \end{equation}
 
-The weak form for the \(\nabla^2 u\) (diffusion) kernel is:
+\item The weak form for the \(\nabla^2 u\) (diffusion) kernel is:
 
 \begin{equation}
 \int_{\Omega}^{}\color{green}\nabla u\color{black}\cdot\color{red}\nabla\psi\color{black} d\Omega
 \end{equation}
 
-The weak form for the \(\vv{V}\cdot\nabla u\) (advective) kernel is:
+\item The weak form for the \(\vv{V}\cdot\nabla u\) (advective) kernel is:
 
 \begin{equation}
 \int_{\Omega}^{}\vv{V}\cdot\nabla u\psi d\Omega\quad\rightarrow\quad\int_{\Omega}^{}\vv{V}\cdot\color{green}\nabla u\color{black}\left(\psi+\tau\vv{V}\cdot\color{red}\nabla \psi\color{black}\right) d\Omega
 \end{equation}
+\end{itemize}
 
 \end{frame}
 
@@ -433,21 +387,21 @@ The weak form for the \(\vv{V}\cdot\nabla u\) (advective) kernel is:
 \begin{subfigure}{.425\textwidth}
   \centering
   \includegraphics[width=1.0\linewidth]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/NoStabilization.pdf}
-  \caption{No stabilization}
+  \caption{Unstabilized}
 \end{subfigure}
 \begin{subfigure}{.425\textwidth}
   \centering
   \includegraphics[width=1.0\linewidth]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/Stabilization.pdf}
-  \caption{Stabilization}
+  \caption{Stabilized}
 \end{subfigure}
-\caption{Stabilization effect on obtaining the correct solution of \(\rho=\sin{(2\pi x)}+5\). }
+\caption{Stabilization effect on obtaining the correct solution of \(\rho=\sin{(2\pi x)}+5\). Results are shown for \(0\leq x\leq 1, 0\leq y\leq 1\).}
 \end{figure}
 
 \end{frame}
 
 %%%%%
 
-\begin{frame}{Theoretical (or better) convergnce}
+\begin{frame}{Theoretical (or better) convergence}
 
 \begin{table}[H]
 \caption{Convergence rates for PRONGHORN SUPG kernels.}
@@ -472,28 +426,30 @@ Kernel  & Linear & Quadratic\\ [0.5ex]
 \end{frame}
 
 \begin{frame}{Reducing runtime}
-\begin{itemize}
-\item Stabilization gives you results 100-1000 times faster! (by allowing bigger \(\Delta t\))
-\end{itemize}
 
 \begin{figure}[H]
 \centering
-\begin{subfigure}{0.45\textwidth}
+\begin{subfigure}{0.48\textwidth}
   \centering
   \includegraphics[width=1.0\linewidth]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/Runtime_unstabilized_continuity_eqn_full_caseb.pdf}
-  \caption{Unstabilized, continuity}
+  \caption{Unstabilized}
 \end{subfigure}
-\begin{subfigure}{0.45\textwidth}
+\begin{subfigure}{0.48\textwidth}
   \centering
   \includegraphics[width=1.0\linewidth]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/Runtime_stabilized_continuity_eqn_full_caseb.pdf}
-  \caption{Stabilized, continuity}
+  \caption{Stabilized}
 \end{subfigure}
-\caption{Difference in runtime between the (a) unstabilized and (b) stabilized continuity equations as a function of \(\Delta t\) for an end time of 60 seconds.}
+\caption{Runtime for the (a) unstabilized and (b) stabilized conservation of mass equations as a function of \(\Delta t\) for an end time of 60 seconds.}
 \end{figure}
 
 \end{frame}
 
 \begin{frame}{Reducing runtime}
+
+\begin{itemize}
+\item Stabilization gives you results 100-1000 times faster! (by allowing bigger \(\Delta t\))
+\end{itemize}
+
 \begin{figure}[H]
   \centering
   \includegraphics[width=7cm]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/runtime_ratio.pdf}
@@ -502,5 +458,16 @@ Kernel  & Linear & Quadratic\\ [0.5ex]
 \end{frame}
 
 %%%%%
+
+\begin{frame}{Conclusions}
+\begin{itemize}
+\item SUPG has been successfully-implemented in PRONGHORN
+	\begin{itemize}
+		\item Gives correct results without modifying the physics
+		\item Thorough verification framework
+		\item Reduced runtimes
+	\end{itemize}
+\end{itemize}
+\end{frame}
 
 \end{document}
