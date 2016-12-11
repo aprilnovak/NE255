@@ -47,6 +47,7 @@
 \usepackage[makeroom]{cancel} % to put diagonal lines over equation terms
 \usepackage[mathscr]{euscript} % for script letters
 \usepackage{wasysym}  % for checkboxes
+\usepackage{listings}
 
 
 
@@ -225,6 +226,8 @@ The presence of the two gradients, \(\nabla T\) and \(\nabla\psi\) in the diffus
 \section{Code Use}
 
 A full description of a PRONGHORN input file is beyond the scope of this report, but a brief summary can be given. Each input file specifies conservation of mass, momentum, and energy by including all physics kernels in those equations. An equation of state is specified in order to determine pressure in terms of other solution variables. Boundary conditions are then specified at inflow locations (no boundary conditions at outflow locations). The user selects the family and order of the finite element shape functions, and can either upload a mesh generated with commercial software or use the mesh-generation capability of \gls{moose}. Finally, the executioner is specified, which by default is preconditioned-\gls{jfnk}. Post-processed results, such as averages or integrals of the solution, can also be specified to assess simulation results. Running a PRONGHORN input file gives results for the fluid density, velocity, and energy, and for the solid temperature. 
+
+It was requested that the code be submitted, but for export control reasons that can't be done (but I think you have access to PRONGHORN?). PRONGHORN is currently on the Idaho National Lab (INL) GitLab page. Likewise, there are about 55 tests in PRONGHORN, and submitting all of these is not necessary, but attached in Section \ref{sec:Input} is the input to solve the 1-D convection-diffusion equation, with the results shown in Fig. \ref{fig:1D}.
 
 \section{Test Problems and Results}
 
@@ -1246,6 +1249,14 @@ Kernel & Test Name & & Linear & Quadratic\\ [0.5ex]
 \end{tabular}
 \label{table:TestMatrixPlanSUPG}
 \end{table}
+
+\subsection{PRONGHORN Input File}
+\label{sec:Input}
+
+This section contains the PRONGHORN input file \texttt{1D\_convection\_diffusion.i} used to solve the 1-D convection diffusion equation to provide 1-D nodally-exact results demonstrating the successful implementation of SUPG stabilization. 
+
+\lstinputlisting[language=Octave]{1D_convection_diffusion.i}
+
 
 
 \end{document}
