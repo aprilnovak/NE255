@@ -228,9 +228,57 @@ A full description of a PRONGHORN input file is beyond the scope of this report,
 
 \section{Test Problems and Results}
 
+This section presents the test problems and results used to verify and validate the implementation of SUPG stabilization in PRONGHORN. In 1-D cases, SUPG stabilization is exact. Fig. \ref{fig:1D} shows the difference between (a) no stabilization and (b) SUPG stabilization in the 1-D convection diffusion equation for various \(Pe\). As can be seen, without stabilization, oscillations result for \(Pe>1\), with the amplitude of the oscillations increasing with the magnitude of \(Pe\). With stabilization, however, nodally-exact results are obtained. This demonstrates the successful implementation of SUPG stabilization in 1-D. 
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{.45\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/1D_convection_diffusion.pdf}
+  \caption{Unstabilized}
+\end{subfigure}
+\begin{subfigure}{.45\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/1D_convection_diffusion_SUPG.pdf}
+  \caption{Stabilized}
+\end{subfigure}
+\caption{Solution with (a) no stabilization and (b) SUPG stabilization to \(V du/dx-kd^2u/dx^2=0\) over the domain \(0\leq x\leq 1\) with boundary conditions \(x(0)=0, x(1)=1\). The analytical solutions are shown as solid lines.}
+\label{fig:1D}
+\end{figure}
+
+In higher dimensions, SUPG will not always give nodally-exact results due to the fact that velocities are often skew to the mesh and obtaining the representative element dimension is non-exact. However, all SUPG kernels developed displayed theoretical or better-than-theoretical convergence rates when measured in the \(L^2\) norm. The details of this verification process are very lengthy, and a table indicating the kernel, the test name, and the convergence rates for all kernels is contained in Section \ref{sec:Verification}. Two tests are still running, but based on the success of the 2-D tests, are very likely to give correct convergence rates once extended to 3-D.\newline 
+
+With SUPG stabilization, two times as many residual and Jacobian evaluations are required, but stabilization is known to improve iterative solution convergence, so a runtime study was performed to determine how the runtime varies as a function of velocity both with and without stabilization. A test was created that solves the mass conservation equation in a transient case with an end time of 60 seconds. The test was run both with and without stabilization for a variety of time step sizes \(\Delta t\) and for several velocity profiles. As shown in Fig. \ref{fig:runtime1}, for the unstabilized cases, at very small \(\Delta t\), have lower runtimes than the stabilized cases since there are a lower number of residual evaluations and the small time step makes those cases sufficiently stable that no appreciable difference is observed in runtime. However, as \(\Delta t\) is increased, the unstabilized cases begins to suffer from convergence problems, and at a sufficiently large \(\Delta t\), the runtime actually begins to increase (even though there are a fewer number of total time steps) because the time instability limit is approached. 
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.45\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/Runtime_unstabilized_continuity_eqn_full_caseb.pdf}
+  \caption{Unstabilized, continuity}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/Runtime_stabilized_continuity_eqn_full_caseb.pdf}
+  \caption{Stabilized, continuity}
+\end{subfigure}
+\caption{Difference in runtime between the (a) unstabilized and (b) stabilized mass conservation equation as a function of \(\Delta t\) for various velocity profiles for an end time of 60 seconds. Data for the unstabilized cases is cut-off once reaching a \(\Delta t\) beyond which larger \(\Delta t\) lead to longer run times.}
+\label{fig:runtime1}
+\end{figure}
+
+By comparing the smallest possible runtime for the stabilized and unstabilized (defined as the runtime beyond which the runtime begins to increase again due to instabilities) cases, the ratio in the runtime without stabilization to with stabilization can be estimated. This is shown in Fig. \ref{fig:runtime2} for the test of the mass conservation equation results given in Fig. \ref{fig:runtime1} and for a similar test of the momentum equation. With stabilization, the runtime is decreased by anywhere between a factor of 10 and 80 for a runtime of 60 seconds. The larger the velocity magnitude, the more significant the stabilizing effect in the iterative solution, which is to be expected based on the de-stabilizing properties of convection. Typical runtimes for thermal-hydraulic transients can be of the order of hours or even days for certain transients in reactors with large amounts of thermal inertia, and so the runtime in those cases, provided a larger \(\Delta t\) than 60 seconds is acceptable to the user, the runtime could be decreased by a factor of 10-1000. Hence, not only is stabilization imperative in obtaining physically-meaningful results, but it also greatly reduces the runtime by decreasing the number of iterations in the iterative solution.
+
+ \begin{figure}[H]
+  \centering
+  \includegraphics[width=7cm]{/Users/aprilnovak/projects/wolverine/doc/manual/figures/runtime_ratio.pdf}
+  \caption{Ratio between the runtime without and with stabilization as a function of velocity magnitude for tests of the conservation of mass (continuity) equation and momentum equation for an end time of 60 seconds.}
+  \label{fig:runtime2}
+\end{figure}
+
+
 \section{Conclusion}
 
-This report discussed the continuous and weak-form discretized compressible Euler equations and the theory behind \gls{supg} stabilization. The completion of this project will bring PRONGHORN to the state where it is ready to begin single-physics simulation (of fluid flow and solid heat transfer), and in the future, multiphysics simulations with RATTLESNAKE and RELAP-7 will be conducted in order to investigate nuclear reactor transient response. 
+This report discussed the continuous and weak-form discretized compressible Euler equations and the theory behind \gls{supg} stabilization. SUPG stabilization has been successfully implemented in PRONGHORN, and 1-D, 2-D, and 3-D verifications tests have been successfully performed, and nodally-exact results, along with theoretical convergence rates, verify that the method has been implemented correctly. The benefits of stabilization, with regard to obtaining physically-meaningful results with a significantly reduced number of iterations in the iterative solution scheme, have been demonstrated with a variety of tests. Future work will include the stabilization-like-implementation of a shock-capturing term to allow validation tests to be performed using shock-wave tests developed by the aerospace industry, the largest user of the Euler equations solved in PRONGHORN. 
 
 \section{References}
 
@@ -1166,5 +1214,38 @@ The SUPG weak forms of the governing equations are:
 \end{equation}
 
 The SUPG stabilization is implemented in PRONGHORN by creating one SUPG kernel for each kernel to be stabilized, with the naming convention that the SUPG kernel is simply the kernel name followed by ``SUPG.'' The SUPG stabilization is split up in this manner to permit a high level of generality. 
+
+\subsection{SUPG Verification}
+\label{sec:Verification}
+
+
+\begin{table}[H]
+\caption{Summary of 2-D and 3-D MMS tests and convergence rates for PRONGHORN SUPG kernels. The spatial error is not assessed for the time kernels.}
+\centering
+\begin{tabular}{l l c c c c}
+\hline\hline
+Kernel & Test Name & & Linear & Quadratic\\ [0.5ex]
+\hline
+\multirow{2}{*}{ContinuityEqnSUPG} 				& \texttt{continuity\_eqn\_SUPG}		& 2-D  	& 2.11 - 3.02 & 2.99 - 3.00\\
+			 				 			& \texttt{continuity\_eqn\_SUPG\_3D}	& 3-D  	& 2.26 - 3.05 & 2.94 - 3.03\\\hdashline
+\multirow{2}{*}{MomConvectiveFluxSUPG} 		& \texttt{mom\_conv\_flux\_SUPG}		& 2-D  	& 2.11 - 3.02 & 2.99 - 3.00\\
+			 				 			& \texttt{mom\_conv\_flux\_SUPG\_3D}	& 3-D  	& 2.26 - 3.05 & 2.94 - 3.02\\\hdashline
+\multirow{2}{*}{MomPressureGradientSUPG} 		& \texttt{mom\_press\_grad\_SUPG\_2D}	& 2-D  	& 2.11 - 3.02 & 2.99 - 3.00\\
+			 				 			& \texttt{mom\_press\_grad\_SUPG}		& 3-D  	& 2.28 - 3.05 & 2.94 - 3.02\\\hdashline
+\multirow{2}{*}{MomFrictionForceSUPG} 			& \texttt{mom\_friction\_SUPG}			& 2-D  	& 2.99 - 3.00 & 2.82 - 2.93\\
+			 				 			& \texttt{mom\_friction\_SUPG\_3D}		& 3-D  	& 2.33 - 3.00 & 2.94 - 2.95\\\hdashline
+\multirow{2}{*}{MomGravityForceSUPG } 			& \texttt{mom\_gravity\_SUPG}			& 2-D  	& 1.99 - 2.00 & 2.83 - 2.93\\
+			 				 			& \texttt{mom\_gravity\_SUPG\_3D}		& 3-D  	&  & \\\hdashline
+\multirow{2}{*}{FluidEnergyConvectiveFluxSUPG} 	& \texttt{fluid\_energy\_conv\_flux\_SUPG}& 2-D  	& 2.05 - 2.08 & 2.95 - 2.97\\
+			 				 			& \texttt{fluid\_energy\_conv\_flux\_SUPG\_3D\_v2}& 3-D  	& 2.04 - 2.05 & 2.88 - 2.97\\\hdashline
+\multirow{2}{*}{FluidEnergyGravityForceSUPG} 	& \texttt{fluid\_energy\_gravity\_force\_SUPG}& 2-D  	& 2.06 - 2.10 & 2.93 - 2.97\\
+			 				 			& \texttt{fluid\_energy\_gravity\_force\_SUPG\_3D}	& 3-D  	& 2.05 - 2.06 & 2.86 - 2.99\\\hdashline
+\multirow{2}{*}{FluidSolidConvectionSUPG} 		& \texttt{fluid\_solid\_convection\_SUPG}	& 2-D  	& 2.00	     & 2.99 - 3.57\\
+			 				 			& 								& 3-D  	& & \\			
+\hline
+\end{tabular}
+\label{table:TestMatrixPlanSUPG}
+\end{table}
+
 
 \end{document}
